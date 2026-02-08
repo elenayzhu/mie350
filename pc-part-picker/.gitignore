@@ -4,4 +4,4 @@
 *.ipr
 *.iws
 out/
-.vscode
+.vscode/
