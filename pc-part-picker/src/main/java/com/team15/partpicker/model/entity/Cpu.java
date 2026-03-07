@@ -7,6 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
@@ -28,9 +29,11 @@ public class Cpu {
     private String socket;
 
     @Positive
+    @NotNull
     private Integer cores;
 
     @DecimalMin("0.0")
+    @NotNull
     private BigDecimal price;
 
     public Cpu() {

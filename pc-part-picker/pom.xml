@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>cms</artifactId>
+	<artifactId>pc-part-picker</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>cms</name>
-	<description>Course Management System</description>
+	<name>pc-part-picker</name>
+	<description>PC Part Picker</description>
 	<properties>
 		<java.version>11</java.version>
 	</properties>

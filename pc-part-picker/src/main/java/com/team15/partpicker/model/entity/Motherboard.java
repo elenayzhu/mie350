@@ -7,6 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
@@ -30,6 +31,7 @@ public class Motherboard {
     private String formFactor;
 
     @DecimalMin("0.0")
+    @NotNull
     private BigDecimal price;
 
     public Motherboard() {
