@@ -90,28 +90,34 @@ public class RecommendationService {
         UserPreference preference = getPreference(preferenceId);
         BigDecimal totalBudget = preference.getMaxBudget() == null ? BigDecimal.ZERO : preference.getMaxBudget();
 
-        BigDecimal cpuBudget = totalBudget.multiply(new BigDecimal("0.40"));
-        BigDecimal gpuBudget = totalBudget.multiply(new BigDecimal("0.45"));
-        BigDecimal motherboardBudget = totalBudget.subtract(cpuBudget).subtract(gpuBudget);
+        BigDecimal targetCpuBudget = totalBudget.multiply(new BigDecimal("0.40"));
+        BigDecimal targetGpuBudget = totalBudget.multiply(new BigDecimal("0.45"));
 
-        Cpu cpu = chooseCpu(preference, cpuBudget);
-        Gpu gpu = chooseGpu(preference, gpuBudget);
+        Cpu cpu = chooseCpu(preference, targetCpuBudget);
+        if (cpu == null) {
+            cpu = chooseCheapestCpu(preference, totalBudget);
+        }
+
+        BigDecimal remainingAfterCpu = totalBudget.subtract(priceOrZero(cpu == null ? null : cpu.getPrice())).max(BigDecimal.ZERO);
+
+        Gpu gpu = chooseGpu(preference, targetGpuBudget.min(remainingAfterCpu));
+        if (gpu == null) {
+            gpu = chooseCheapestGpu(preference, remainingAfterCpu);
+        }
 
         String cpuSocket = cpu == null ? null : cpu.getSocket();
-        Motherboard motherboard = chooseMotherboard(preference, motherboardBudget, cpuSocket);
+        BigDecimal remainingAfterGpu = remainingAfterCpu.subtract(priceOrZero(gpu == null ? null : gpu.getPrice())).max(BigDecimal.ZERO);
+        Motherboard motherboard = chooseMotherboard(preference, remainingAfterGpu, cpuSocket);
 
-        BigDecimal total = BigDecimal.ZERO;
-        if (cpu != null) {
-            total = total.add(cpu.getPrice());
-        }
-        if (gpu != null) {
-            total = total.add(gpu.getPrice());
-        }
-        if (motherboard != null) {
-            total = total.add(motherboard.getPrice());
-        }
+        BigDecimal total = priceOrZero(cpu == null ? null : cpu.getPrice())
+                .add(priceOrZero(gpu == null ? null : gpu.getPrice()))
+                .add(priceOrZero(motherboard == null ? null : motherboard.getPrice()));
 
         return new RecommendationResponse(cpu, gpu, motherboard, total);
+    }
+
+    private BigDecimal priceOrZero(BigDecimal price) {
+        return price == null ? BigDecimal.ZERO : price;
     }
 
     private Cpu chooseCpu(UserPreference preference, BigDecimal budget) {
@@ -126,6 +132,18 @@ public class RecommendationService {
         return mostExpensiveCpu(candidates);
     }
 
+    private Cpu chooseCheapestCpu(UserPreference preference, BigDecimal budget) {
+        List<Cpu> candidates;
+        if (preference.getPreferredCpuBrand() != null && !preference.getPreferredCpuBrand().isBlank()) {
+            candidates = cpuRepository.findByBrandIgnoreCaseAndPriceLessThanEqual(preference.getPreferredCpuBrand(), budget);
+            if (!candidates.isEmpty()) {
+                return cheapestCpu(candidates);
+            }
+        }
+        candidates = cpuRepository.findByPriceLessThanEqual(budget);
+        return cheapestCpu(candidates);
+    }
+
     private Gpu chooseGpu(UserPreference preference, BigDecimal budget) {
         List<Gpu> candidates;
         if (preference.getPreferredGpuBrand() != null && !preference.getPreferredGpuBrand().isBlank()) {
@@ -136,6 +154,18 @@ public class RecommendationService {
         }
         candidates = gpuRepository.findByPriceLessThanEqual(budget);
         return mostExpensiveGpu(candidates);
+    }
+
+    private Gpu chooseCheapestGpu(UserPreference preference, BigDecimal budget) {
+        List<Gpu> candidates;
+        if (preference.getPreferredGpuBrand() != null && !preference.getPreferredGpuBrand().isBlank()) {
+            candidates = gpuRepository.findByBrandIgnoreCaseAndPriceLessThanEqual(preference.getPreferredGpuBrand(), budget);
+            if (!candidates.isEmpty()) {
+                return cheapestGpu(candidates);
+            }
+        }
+        candidates = gpuRepository.findByPriceLessThanEqual(budget);
+        return cheapestGpu(candidates);
     }
 
     private Motherboard chooseMotherboard(UserPreference preference, BigDecimal budget, String socket) {
@@ -175,14 +205,37 @@ public class RecommendationService {
     }
 
     private Cpu mostExpensiveCpu(List<Cpu> cpus) {
-        return cpus.stream().max((a, b) -> a.getPrice().compareTo(b.getPrice())).orElse(null);
+        return cpus.stream()
+                .filter(cpu -> cpu.getPrice() != null)
+                .max((a, b) -> a.getPrice().compareTo(b.getPrice()))
+                .orElse(null);
     }
 
     private Gpu mostExpensiveGpu(List<Gpu> gpus) {
-        return gpus.stream().max((a, b) -> a.getPrice().compareTo(b.getPrice())).orElse(null);
+        return gpus.stream()
+                .filter(gpu -> gpu.getPrice() != null)
+                .max((a, b) -> a.getPrice().compareTo(b.getPrice()))
+                .orElse(null);
+    }
+
+    private Cpu cheapestCpu(List<Cpu> cpus) {
+        return cpus.stream()
+                .filter(cpu -> cpu.getPrice() != null)
+                .min((a, b) -> a.getPrice().compareTo(b.getPrice()))
+                .orElse(null);
+    }
+
+    private Gpu cheapestGpu(List<Gpu> gpus) {
+        return gpus.stream()
+                .filter(gpu -> gpu.getPrice() != null)
+                .min((a, b) -> a.getPrice().compareTo(b.getPrice()))
+                .orElse(null);
     }
 
     private Motherboard cheapestMotherboard(List<Motherboard> motherboards) {
-        return motherboards.stream().min((a, b) -> a.getPrice().compareTo(b.getPrice())).orElse(null);
+        return motherboards.stream()
+                .filter(motherboard -> motherboard.getPrice() != null)
+                .min((a, b) -> a.getPrice().compareTo(b.getPrice()))
+                .orElse(null);
     }
 }

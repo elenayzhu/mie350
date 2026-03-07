@@ -7,6 +7,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
 
@@ -25,9 +26,11 @@ public class Gpu {
     private String brand;
 
     @Positive
+    @NotNull
     private Integer vramGb;
 
     @DecimalMin("0.0")
+    @NotNull
     private BigDecimal price;
 
     public Gpu() {
