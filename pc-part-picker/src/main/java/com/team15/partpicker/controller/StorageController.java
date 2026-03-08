@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -23,8 +25,20 @@ public class StorageController {
     }
 
     @GetMapping
-    public List<Storage> getStorages() {
-        return storageRepository.findAll();
+    public List<Storage> getStorages(
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) Integer minCapacity,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice
+    ) {
+        return storageRepository.findAll().stream()
+                .filter(storage -> brand == null || storage.getBrand().equalsIgnoreCase(brand))
+                .filter(storage -> type == null || storage.getType().equalsIgnoreCase(type))
+                .filter(storage -> minCapacity == null || storage.getCapacityGb() >= minCapacity)
+                .filter(storage -> minPrice == null || storage.getPrice().compareTo(minPrice) >= 0)
+                .filter(storage -> maxPrice == null || storage.getPrice().compareTo(maxPrice) <= 0)
+                .toList();
     }
 
     @GetMapping("/{storageId}")

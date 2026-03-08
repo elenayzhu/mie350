@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -23,8 +25,18 @@ public class GpuController {
     }
 
     @GetMapping
-    public List<Gpu> getGpus() {
-        return recommendationService.listAllGpus();
+    public List<Gpu> getGpus(
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) Integer minVramGb,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice
+    ) {
+        return recommendationService.listAllGpus().stream()
+                .filter(gpu -> brand == null || gpu.getBrand().equalsIgnoreCase(brand))
+                .filter(gpu -> minVramGb == null || gpu.getVramGb() >= minVramGb)
+                .filter(gpu -> minPrice == null || gpu.getPrice().compareTo(minPrice) >= 0)
+                .filter(gpu -> maxPrice == null || gpu.getPrice().compareTo(maxPrice) <= 0)
+                .toList();
     }
 
     @GetMapping("/{gpuId}")

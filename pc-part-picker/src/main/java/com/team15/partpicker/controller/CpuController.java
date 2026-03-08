@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -23,8 +25,20 @@ public class CpuController {
     }
 
     @GetMapping
-    public List<Cpu> getCpus() {
-        return recommendationService.listAllCpus();
+    public List<Cpu> getCpus(
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String socket,
+            @RequestParam(required = false) Integer minCores,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice
+    ) {
+        return recommendationService.listAllCpus().stream()
+                .filter(cpu -> brand == null || cpu.getBrand().equalsIgnoreCase(brand))
+                .filter(cpu -> socket == null || cpu.getSocket().equalsIgnoreCase(socket))
+                .filter(cpu -> minCores == null || cpu.getCores() >= minCores)
+                .filter(cpu -> minPrice == null || cpu.getPrice().compareTo(minPrice) >= 0)
+                .filter(cpu -> maxPrice == null || cpu.getPrice().compareTo(maxPrice) <= 0)
+                .toList();
     }
 
     @GetMapping("/{cpuId}")
