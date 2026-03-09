@@ -2,6 +2,7 @@ package com.team15.partpicker.controller;
 
 import com.team15.partpicker.model.entity.Motherboard;
 import com.team15.partpicker.model.service.RecommendationService;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,12 +43,12 @@ public class MotherboardController {
     }
 
     @GetMapping("/{motherboardId}")
-    public Motherboard getMotherboard(@PathVariable Long motherboardId) {
+    public Motherboard getMotherboard(@PathVariable @NonNull Long motherboardId) {
         return recommendationService.getMotherboard(motherboardId);
     }
 
     @PostMapping
-    public Motherboard createMotherboard(@Valid @RequestBody Motherboard motherboard) {
+    public Motherboard createMotherboard(@Valid @RequestBody @NonNull Motherboard motherboard) {
         return recommendationService.addMotherboard(motherboard);
     }
 }

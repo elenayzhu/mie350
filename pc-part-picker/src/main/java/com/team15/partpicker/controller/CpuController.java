@@ -2,6 +2,7 @@ package com.team15.partpicker.controller;
 
 import com.team15.partpicker.model.entity.Cpu;
 import com.team15.partpicker.model.service.RecommendationService;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,12 +43,12 @@ public class CpuController {
     }
 
     @GetMapping("/{cpuId}")
-    public Cpu getCpu(@PathVariable Long cpuId) {
+    public Cpu getCpu(@PathVariable @NonNull Long cpuId) {
         return recommendationService.getCpu(cpuId);
     }
 
     @PostMapping
-    public Cpu createCpu(@Valid @RequestBody Cpu cpu) {
+    public Cpu createCpu(@Valid @RequestBody @NonNull Cpu cpu) {
         return recommendationService.addCpu(cpu);
     }
 }

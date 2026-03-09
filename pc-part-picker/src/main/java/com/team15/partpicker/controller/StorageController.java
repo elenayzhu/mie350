@@ -2,6 +2,7 @@ package com.team15.partpicker.controller;
 
 import com.team15.partpicker.model.entity.Storage;
 import com.team15.partpicker.model.repository.StorageRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,13 +43,13 @@ public class StorageController {
     }
 
     @GetMapping("/{storageId}")
-    public Storage getStorage(@PathVariable Long storageId) {
+    public Storage getStorage(@PathVariable @NonNull Long storageId) {
         return storageRepository.findById(storageId)
                 .orElseThrow(() -> new RuntimeException("Storage not found with id: " + storageId));
     }
 
     @PostMapping
-    public Storage createStorage(@Valid @RequestBody Storage storage) {
+    public Storage createStorage(@Valid @RequestBody @NonNull Storage storage) {
         return storageRepository.save(storage);
     }
 }

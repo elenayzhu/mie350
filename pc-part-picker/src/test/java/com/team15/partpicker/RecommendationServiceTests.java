@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,7 +41,7 @@ class RecommendationServiceTests {
         preference.setPreferredMotherboardBrand("MSI");
         preference.setMaxBudget(new BigDecimal("600.00"));
 
-        Long preferenceId = userPreferenceRepository.save(preference).getId();
+        Long preferenceId = Objects.requireNonNull(userPreferenceRepository.save(preference).getId());
         RecommendationResponse response = recommendationService.recommendForPreference(preferenceId);
 
         assertNotNull(response.getCpu());

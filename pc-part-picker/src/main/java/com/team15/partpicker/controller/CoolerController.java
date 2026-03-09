@@ -2,6 +2,7 @@ package com.team15.partpicker.controller;
 
 import com.team15.partpicker.model.entity.Cooler;
 import com.team15.partpicker.model.repository.CoolerRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,13 +45,13 @@ public class CoolerController {
     }
 
     @GetMapping("/{coolerId}")
-    public Cooler getCooler(@PathVariable Long coolerId) {
+    public Cooler getCooler(@PathVariable @NonNull Long coolerId) {
         return coolerRepository.findById(coolerId)
                 .orElseThrow(() -> new RuntimeException("Cooler not found with id: " + coolerId));
     }
 
     @PostMapping
-    public Cooler createCooler(@Valid @RequestBody Cooler cooler) {
+    public Cooler createCooler(@Valid @RequestBody @NonNull Cooler cooler) {
         return coolerRepository.save(cooler);
     }
 }

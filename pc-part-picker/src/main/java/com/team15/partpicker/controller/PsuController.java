@@ -2,6 +2,7 @@ package com.team15.partpicker.controller;
 
 import com.team15.partpicker.model.entity.Psu;
 import com.team15.partpicker.model.repository.PsuRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,13 +45,13 @@ public class PsuController {
     }
 
     @GetMapping("/{psuId}")
-    public Psu getPsu(@PathVariable Long psuId) {
+    public Psu getPsu(@PathVariable @NonNull Long psuId) {
         return psuRepository.findById(psuId)
                 .orElseThrow(() -> new RuntimeException("PSU not found with id: " + psuId));
     }
 
     @PostMapping
-    public Psu createPsu(@Valid @RequestBody Psu psu) {
+    public Psu createPsu(@Valid @RequestBody @NonNull Psu psu) {
         return psuRepository.save(psu);
     }
 }

@@ -24,6 +24,7 @@ import com.team15.partpicker.model.repository.PsuRepository;
 import com.team15.partpicker.model.repository.RamRepository;
 import com.team15.partpicker.model.repository.StorageRepository;
 import com.team15.partpicker.model.repository.UserPreferenceRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -68,12 +69,12 @@ public class RecommendationService {
         return cpuRepository.findAll();
     }
 
-    public Cpu getCpu(Long cpuId) {
+    public Cpu getCpu(@NonNull Long cpuId) {
         return cpuRepository.findById(cpuId)
                 .orElseThrow(() -> new CpuNotFoundException(cpuId));
     }
 
-    public Cpu addCpu(Cpu cpu) {
+    public Cpu addCpu(@NonNull Cpu cpu) {
         return cpuRepository.save(cpu);
     }
 
@@ -81,12 +82,12 @@ public class RecommendationService {
         return gpuRepository.findAll();
     }
 
-    public Gpu getGpu(Long gpuId) {
+    public Gpu getGpu(@NonNull Long gpuId) {
         return gpuRepository.findById(gpuId)
                 .orElseThrow(() -> new GpuNotFoundException(gpuId));
     }
 
-    public Gpu addGpu(Gpu gpu) {
+    public Gpu addGpu(@NonNull Gpu gpu) {
         return gpuRepository.save(gpu);
     }
 
@@ -94,25 +95,25 @@ public class RecommendationService {
         return motherboardRepository.findAll();
     }
 
-    public Motherboard getMotherboard(Long motherboardId) {
+    public Motherboard getMotherboard(@NonNull Long motherboardId) {
         return motherboardRepository.findById(motherboardId)
                 .orElseThrow(() -> new MotherboardNotFoundException(motherboardId));
     }
 
-    public Motherboard addMotherboard(Motherboard motherboard) {
+    public Motherboard addMotherboard(@NonNull Motherboard motherboard) {
         return motherboardRepository.save(motherboard);
     }
 
-    public UserPreference createPreference(UserPreference userPreference) {
+    public UserPreference createPreference(@NonNull UserPreference userPreference) {
         return userPreferenceRepository.save(userPreference);
     }
 
-    public UserPreference getPreference(Long preferenceId) {
+    public UserPreference getPreference(@NonNull Long preferenceId) {
         return userPreferenceRepository.findById(preferenceId)
                 .orElseThrow(() -> new UserPreferenceNotFoundException(preferenceId));
     }
 
-    public RecommendationResponse recommendForPreference(Long preferenceId) {
+    public RecommendationResponse recommendForPreference(@NonNull Long preferenceId) {
         UserPreference preference = getPreference(preferenceId);
         BigDecimal totalBudget = preference.getMaxBudget() == null ? BigDecimal.ZERO : preference.getMaxBudget();
         
@@ -148,21 +149,40 @@ public class RecommendationService {
             targetMotherboardBudget.min(remainingAfterGpu),
             cpuSocket
         );
+        if (motherboard == null && remainingAfterGpu.compareTo(targetMotherboardBudget) > 0) {
+            // Try again with full remaining budget if target was too restrictive
+            motherboard = chooseMotherboard(preference, remainingAfterGpu, cpuSocket);
+        }
         BigDecimal remainingAfterMotherboard = remainingAfterGpu.subtract(priceOrZero(motherboard == null ? null : motherboard.getPrice())).max(BigDecimal.ZERO);
 
         Ram ram = chooseRam(preference, targetRamBudget.min(remainingAfterMotherboard));
+        if (ram == null && remainingAfterMotherboard.compareTo(targetRamBudget) > 0) {
+            ram = chooseRam(preference, remainingAfterMotherboard);
+        }
         BigDecimal remainingAfterRam = remainingAfterMotherboard.subtract(priceOrZero(ram == null ? null : ram.getPrice())).max(BigDecimal.ZERO);
 
         Storage storage = chooseStorage(preference, targetStorageBudget.min(remainingAfterRam));
+        if (storage == null && remainingAfterRam.compareTo(targetStorageBudget) > 0) {
+            storage = chooseStorage(preference, remainingAfterRam);
+        }
         BigDecimal remainingAfterStorage = remainingAfterRam.subtract(priceOrZero(storage == null ? null : storage.getPrice())).max(BigDecimal.ZERO);
 
         Psu psu = choosePsu(preference, targetPsuBudget.min(remainingAfterStorage));
+        if (psu == null && remainingAfterStorage.compareTo(targetPsuBudget) > 0) {
+            psu = choosePsu(preference, remainingAfterStorage);
+        }
         BigDecimal remainingAfterPsu = remainingAfterStorage.subtract(priceOrZero(psu == null ? null : psu.getPrice())).max(BigDecimal.ZERO);
 
         Cooler cooler = chooseCooler(preference, targetCoolerBudget.min(remainingAfterPsu));
+        if (cooler == null && remainingAfterPsu.compareTo(targetCoolerBudget) > 0) {
+            cooler = chooseCooler(preference, remainingAfterPsu);
+        }
         BigDecimal remainingAfterCooler = remainingAfterPsu.subtract(priceOrZero(cooler == null ? null : cooler.getPrice())).max(BigDecimal.ZERO);
 
         Case computerCase = chooseCase(preference, targetCaseBudget.min(remainingAfterCooler));
+        if (computerCase == null && remainingAfterCooler.compareTo(targetCaseBudget) > 0) {
+            computerCase = chooseCase(preference, remainingAfterCooler);
+        }
 
         BigDecimal total = priceOrZero(cpu == null ? null : cpu.getPrice())
                 .add(priceOrZero(gpu == null ? null : gpu.getPrice()))
@@ -398,44 +418,43 @@ public class RecommendationService {
         switch (category) {
             case GAMING:
                 return new BudgetAllocation(
-                    //same as default for now, can be tweaked later if we want to differentiate more
-                        new BigDecimal("0.30"), // CPU
-                        new BigDecimal("0.50"), // GPU
-                        new BigDecimal("0.10"), // RAM
-                        new BigDecimal("0.05"), // Motherboard
-                        new BigDecimal("0.03"), // Storage
-                        new BigDecimal("0.01"), // PSU
-                        new BigDecimal("0.01")  // Cooler
+                        new BigDecimal("0.25"), // CPU
+                        new BigDecimal("0.35"), // GPU
+                        new BigDecimal("0.08"), // RAM
+                        new BigDecimal("0.12"), // Motherboard
+                        new BigDecimal("0.08"), // Storage
+                        new BigDecimal("0.06"), // PSU
+                        new BigDecimal("0.06")  // Cooler
                 );
             case AI_ML:
                 return new BudgetAllocation(
-                        new BigDecimal("0.35"), // CPU
-                        new BigDecimal("0.45"), // GPU
-                        new BigDecimal("0.12"), // RAM
-                        new BigDecimal("0.03"), // Motherboard
-                        new BigDecimal("0.03"), // Storage
-                        new BigDecimal("0.01"), // PSU
-                        new BigDecimal("0.01")  // Cooler
+                        new BigDecimal("0.28"), // CPU
+                        new BigDecimal("0.38"), // GPU
+                        new BigDecimal("0.10"), // RAM
+                        new BigDecimal("0.10"), // Motherboard
+                        new BigDecimal("0.06"), // Storage
+                        new BigDecimal("0.04"), // PSU
+                        new BigDecimal("0.04")  // Cooler
                 );
             case WORKSTATION:
                 return new BudgetAllocation(
-                        new BigDecimal("0.40"), // CPU
-                        new BigDecimal("0.35"), // GPU
-                        new BigDecimal("0.15"), // RAM
-                        new BigDecimal("0.05"), // Motherboard
-                        new BigDecimal("0.03"), // Storage
-                        new BigDecimal("0.01"), // PSU
-                        new BigDecimal("0.01")  // Cooler
+                        new BigDecimal("0.32"), // CPU
+                        new BigDecimal("0.28"), // GPU
+                        new BigDecimal("0.12"), // RAM
+                        new BigDecimal("0.12"), // Motherboard
+                        new BigDecimal("0.08"), // Storage
+                        new BigDecimal("0.04"), // PSU
+                        new BigDecimal("0.04")  // Cooler
                 );
             default:
                 return new BudgetAllocation(
-                        new BigDecimal("0.30"), // CPU
-                        new BigDecimal("0.50"), // GPU
-                        new BigDecimal("0.10"), // RAM
-                        new BigDecimal("0.05"), // Motherboard
-                        new BigDecimal("0.03"), // Storage
-                        new BigDecimal("0.01"), // PSU
-                        new BigDecimal("0.01")  // Cooler
+                        new BigDecimal("0.25"), // CPU
+                        new BigDecimal("0.35"), // GPU
+                        new BigDecimal("0.08"), // RAM
+                        new BigDecimal("0.12"), // Motherboard
+                        new BigDecimal("0.08"), // Storage
+                        new BigDecimal("0.06"), // PSU
+                        new BigDecimal("0.06")  // Cooler
                 );
         }
     }
