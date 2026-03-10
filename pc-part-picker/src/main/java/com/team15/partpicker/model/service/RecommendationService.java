@@ -166,16 +166,17 @@ public class RecommendationService {
             storage = chooseStorage(preference, remainingAfterRam);
         }
         BigDecimal remainingAfterStorage = remainingAfterRam.subtract(priceOrZero(storage == null ? null : storage.getPrice())).max(BigDecimal.ZERO);
-
-        Psu psu = choosePsu(preference, targetPsuBudget.min(remainingAfterStorage));
+        
+        int requiredPsuWattage = calculateRequiredPsuWattage(cpu, gpu);
+        Psu psu = choosePsu(preference, targetPsuBudget.min(remainingAfterStorage), requiredPsuWattage);
         if (psu == null && remainingAfterStorage.compareTo(targetPsuBudget) > 0) {
-            psu = choosePsu(preference, remainingAfterStorage);
+            psu = choosePsu(preference, remainingAfterStorage, requiredPsuWattage);
         }
         BigDecimal remainingAfterPsu = remainingAfterStorage.subtract(priceOrZero(psu == null ? null : psu.getPrice())).max(BigDecimal.ZERO);
-
-        Cooler cooler = chooseCooler(preference, targetCoolerBudget.min(remainingAfterPsu));
+           
+        Cooler cooler = chooseCooler(preference, targetCoolerBudget.min(remainingAfterPsu), cpuSocket);
         if (cooler == null && remainingAfterPsu.compareTo(targetCoolerBudget) > 0) {
-            cooler = chooseCooler(preference, remainingAfterPsu);
+            cooler = chooseCooler(preference, remainingAfterPsu, cpuSocket);
         }
         BigDecimal remainingAfterCooler = remainingAfterPsu.subtract(priceOrZero(cooler == null ? null : cooler.getPrice())).max(BigDecimal.ZERO);
 
@@ -275,12 +276,18 @@ public class RecommendationService {
                     preference.getPreferredMotherboardBrand(),
                     budget
             );
+            //match motherboard socket and CPU socket
+            candidates = candidates.stream()
+                    .filter(mb -> socket == null || mb.getSocket().equalsIgnoreCase(socket))
+                    .toList();
             if (!candidates.isEmpty()) {
                 return cheapestMotherboard(candidates);
             }
         }
-
         candidates = motherboardRepository.findByPriceLessThanEqual(budget);
+        candidates = candidates.stream()
+            .filter(mb -> socket == null || mb.getSocket().equalsIgnoreCase(socket))
+            .toList();
         return cheapestMotherboard(candidates);
     }
 
@@ -343,27 +350,39 @@ public class RecommendationService {
         return mostExpensiveStorage(candidates);
     }
 
-    private Psu choosePsu(UserPreference preference, BigDecimal budget) {
+    private Psu choosePsu(UserPreference preference, BigDecimal budget, int requiredWattage) {
         List<Psu> candidates;
         if (preference.getPreferredPsuBrand() != null && !preference.getPreferredPsuBrand().isBlank()) {
             candidates = psuRepository.findByBrandIgnoreCaseAndPriceLessThanEqual(preference.getPreferredPsuBrand(), budget);
+            candidates = candidates.stream()
+                .filter(psu -> psu.getWattage() >= requiredWattage)
+                .toList();
             if (!candidates.isEmpty()) {
                 return cheapestPsu(candidates);
             }
         }
         candidates = psuRepository.findByPriceLessThanEqual(budget);
+        candidates = candidates.stream()
+            .filter(psu -> psu.getWattage() >= requiredWattage)
+            .toList();
         return cheapestPsu(candidates);
     }
 
-    private Cooler chooseCooler(UserPreference preference, BigDecimal budget) {
+    private Cooler chooseCooler(UserPreference preference, BigDecimal budget, String socket) {
         List<Cooler> candidates;
         if (preference.getPreferredCoolerBrand() != null && !preference.getPreferredCoolerBrand().isBlank()) {
             candidates = coolerRepository.findByBrandIgnoreCaseAndPriceLessThanEqual(preference.getPreferredCoolerBrand(), budget);
+            candidates = candidates.stream()
+                .filter(cooler -> socket == null || (cooler.getSocket() != null && cooler.getSocket().equalsIgnoreCase(socket)))
+                .toList();
             if (!candidates.isEmpty()) {
                 return cheapestCooler(candidates);
             }
         }
         candidates = coolerRepository.findByPriceLessThanEqual(budget);
+        candidates = candidates.stream()
+            .filter(cooler -> socket == null || (cooler.getSocket() != null && cooler.getSocket().equalsIgnoreCase(socket)))
+            .toList();
         return cheapestCooler(candidates);
     }
 
@@ -413,6 +432,46 @@ public class RecommendationService {
                 .min((a, b) -> a.getPrice().compareTo(b.getPrice()))
                 .orElse(null);
     }
+
+    //PSU Wattage Estimation Start
+    private int estimateCpuWattage(Cpu cpu) { //cpu no actual data so use estimation with core
+        if (cpu == null) {
+            return 0;
+        }
+        int cores = cpu.getCores();
+
+        if (cores <= 6) {
+            return 95;
+        }
+        if (cores <= 8) {
+            return 125;
+        }
+        return 170;
+    }
+
+    private int estimateGpuWattage(Gpu gpu) { //gpu no actual data so use estimation with vram
+        if (gpu == null) {
+            return 0;
+        }
+        int vram = gpu.getVramGb();
+
+        if (vram <= 8) {
+            return 150;
+        }
+        if (vram <= 12) {
+            return 220;
+        }
+        return 300;
+    }
+
+    private int calculateRequiredPsuWattage(Cpu cpu, Gpu gpu) {
+        int cpuWatts = estimateCpuWattage(cpu);
+        int gpuWatts = estimateGpuWattage(gpu);
+
+        int estimatedSystemLoad = cpuWatts + gpuWatts + 100; //motherboard, RAM, storage, fans
+        return (int) Math.ceil(estimatedSystemLoad * 1.3);   //30% headroom
+    }
+    //PSU Wattage Estimation End
 
     private BudgetAllocation getBudgetAllocationForCategory(BuildCategory category) {
         switch (category) {
