@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.model.entity.BuildCategory;
 import com.team15.partpicker.model.entity.UserPreference;
 import com.team15.partpicker.model.service.RecommendationService;
 import org.springframework.lang.NonNull;
@@ -35,5 +36,10 @@ public class RecommendationController {
     @GetMapping("/recommendations/{preferenceId}")
     public RecommendationResponse getRecommendations(@PathVariable @NonNull Long preferenceId) {
         return recommendationService.recommendForPreference(preferenceId);
+    }
+
+    @GetMapping("/build-categories")
+    public BuildCategory[] getBuildCategories() {
+        return BuildCategory.values();
     }
 }

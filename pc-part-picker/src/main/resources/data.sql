@@ -1,14 +1,14 @@
-INSERT INTO cpus (model, brand, socket, cores, price) VALUES ('Ryzen 5 7600', 'AMD', 'AM5', 6, 279.99);
-INSERT INTO cpus (model, brand, socket, cores, price) VALUES ('Ryzen 7 7700X', 'AMD', 'AM5', 8, 449.99);
-INSERT INTO cpus (model, brand, socket, cores, price) VALUES ('Core i5-14600K', 'Intel', 'LGA1700', 14, 409.99);
+INSERT INTO cpus (model, brand, socket, cores, wattages, price) VALUES ('Ryzen 5 7600', 'AMD', 'AM5', 6, 65, 279.99);
+INSERT INTO cpus (model, brand, socket, cores, wattages, price) VALUES ('Ryzen 7 7700X', 'AMD', 'AM5', 8, 105, 449.99);
+INSERT INTO cpus (model, brand, socket, cores, wattages, price) VALUES ('Core i5-14600K', 'Intel', 'LGA1700', 14, 125, 409.99);
 
-INSERT INTO gpus (model, brand, vramGb, price) VALUES ('RTX 4060', 'NVIDIA', 8, 429.99);
-INSERT INTO gpus (model, brand, vramGb, price) VALUES ('RTX 4070', 'NVIDIA', 12, 749.99);
-INSERT INTO gpus (model, brand, vramGb, price) VALUES ('RX 7600', 'AMD', 8, 369.99);
+INSERT INTO gpus (model, brand, LengthMm, vramGb, wattages, price) VALUES ('RTX 4060', 'NVIDIA', 245, 8, 115, 429.99);
+INSERT INTO gpus (model, brand, LengthMm, vramGb, wattages, price) VALUES ('RTX 4070', 'NVIDIA', 300, 12, 200, 749.99);
+INSERT INTO gpus (model, brand, LengthMm, vramGb, wattages, price) VALUES ('RX 7600', 'AMD', 267, 8, 165, 369.99);
 
-INSERT INTO motherboards (model, brand, socket, formFactor, price) VALUES ('MSI B650M Pro', 'MSI', 'AM5', 'mATX', 189.99);
-INSERT INTO motherboards (model, brand, socket, formFactor, price) VALUES ('ASUS ROG B650E-F', 'ASUS', 'AM5', 'ATX', 339.99);
-INSERT INTO motherboards (model, brand, socket, formFactor, price) VALUES ('Gigabyte B760M DS3H', 'Gigabyte', 'LGA1700', 'mATX', 179.99);
+INSERT INTO motherboards (model, brand, ddrType, socket, formFactor, price) VALUES ('MSI B650M Pro', 'MSI', 'DDR5', 'AM5', 'mATX', 189.99);
+INSERT INTO motherboards (model, brand, ddrType, socket, formFactor, price) VALUES ('ASUS ROG B650E-F', 'ASUS', 'DDR5', 'AM5', 'ATX', 339.99);
+INSERT INTO motherboards (model, brand, ddrType, socket, formFactor, price) VALUES ('Gigabyte B760M DS3H', 'Gigabyte', 'DDR5', 'LGA1700', 'mATX', 179.99);
 
 INSERT INTO rams (model, brand, ddrType, speedMhz, capacityGb, price) VALUES ('Vengeance RGB 16GB', 'Corsair', 'DDR5', 6000, 16, 89.99);
 INSERT INTO rams (model, brand, ddrType, speedMhz, capacityGb, price) VALUES ('Ripjaws V 32GB', 'G.Skill', 'DDR4', 3200, 32, 109.99);

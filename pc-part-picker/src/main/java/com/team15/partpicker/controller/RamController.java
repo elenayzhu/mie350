@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.exception.RamNotFoundException;
 import com.team15.partpicker.model.entity.Ram;
 import com.team15.partpicker.model.repository.RamRepository;
 import org.springframework.lang.NonNull;
@@ -47,7 +48,7 @@ public class RamController {
     @GetMapping("/{ramId}")
     public Ram getRam(@PathVariable @NonNull Long ramId) {
         return ramRepository.findById(ramId)
-                .orElseThrow(() -> new RuntimeException("Ram not found with id: " + ramId));
+                .orElseThrow(() -> new RamNotFoundException(ramId));
     }
 
     @PostMapping

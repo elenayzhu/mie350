@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.exception.CaseNotFoundException;
 import com.team15.partpicker.model.entity.Case;
 import com.team15.partpicker.model.repository.CaseRepository;
 import org.springframework.lang.NonNull;
@@ -45,7 +46,7 @@ public class CaseController {
     @GetMapping("/{caseId}")
     public Case getCase(@PathVariable @NonNull Long caseId) {
         return caseRepository.findById(caseId)
-                .orElseThrow(() -> new RuntimeException("Case not found with id: " + caseId));
+                .orElseThrow(() -> new CaseNotFoundException(caseId));
     }
 
     @PostMapping
