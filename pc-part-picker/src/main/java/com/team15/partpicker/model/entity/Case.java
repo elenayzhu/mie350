@@ -34,12 +34,18 @@ public class Case {
     @NotBlank
     private String brand;
 
-    @NotBlank
+    @Nullable
     private String formFactor; // e.g., ATX, Micro-ATX, Mini-ITX
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer maxGpuLengthMm; // Maximum GPU length supported in mm
+
+    @NotNull
+    private String type;
+
+    @Nullable
+    private String color;
 
     @DecimalMin("0.0")
     @NotNull

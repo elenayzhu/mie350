@@ -43,7 +43,7 @@ public class Cpu {
 
     @Positive
     @NotNull
-    private Integer wattages;
+    private Integer tdp;
 
     @DecimalMin("0.0")
     @NotNull
