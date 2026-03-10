@@ -1,10 +1,12 @@
 package com.team15.partpicker.model.service;
 
 import com.team15.partpicker.controller.RecommendationResponse;
+import com.team15.partpicker.exception.BuildNotFoundException;
 import com.team15.partpicker.exception.CpuNotFoundException;
 import com.team15.partpicker.exception.GpuNotFoundException;
 import com.team15.partpicker.exception.MotherboardNotFoundException;
 import com.team15.partpicker.exception.UserPreferenceNotFoundException;
+import com.team15.partpicker.model.entity.Build;
 import com.team15.partpicker.model.entity.BuildCategory;
 import com.team15.partpicker.model.entity.Case;
 import com.team15.partpicker.model.entity.Cooler;
@@ -15,6 +17,7 @@ import com.team15.partpicker.model.entity.Psu;
 import com.team15.partpicker.model.entity.Ram;
 import com.team15.partpicker.model.entity.Storage;
 import com.team15.partpicker.model.entity.UserPreference;
+import com.team15.partpicker.model.repository.BuildRepository;
 import com.team15.partpicker.model.repository.CaseRepository;
 import com.team15.partpicker.model.repository.CoolerRepository;
 import com.team15.partpicker.model.repository.CpuRepository;
@@ -42,6 +45,7 @@ public class RecommendationService {
     private final StorageRepository storageRepository;
     private final CoolerRepository coolerRepository;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final BuildRepository buildRepository;
 
     public RecommendationService(
             CpuRepository cpuRepository,
@@ -52,7 +56,8 @@ public class RecommendationService {
             CaseRepository caseRepository,
             StorageRepository storageRepository,
             CoolerRepository coolerRepository,
-            UserPreferenceRepository userPreferenceRepository
+            UserPreferenceRepository userPreferenceRepository,
+            BuildRepository buildRepository
     ) {
         this.cpuRepository = cpuRepository;
         this.gpuRepository = gpuRepository;
@@ -63,6 +68,7 @@ public class RecommendationService {
         this.storageRepository = storageRepository;
         this.coolerRepository = coolerRepository;
         this.userPreferenceRepository = userPreferenceRepository;
+        this.buildRepository = buildRepository;
     }
 
     public List<Cpu> listAllCpus() {
@@ -111,6 +117,16 @@ public class RecommendationService {
     public UserPreference getPreference(@NonNull Long preferenceId) {
         return userPreferenceRepository.findById(preferenceId)
                 .orElseThrow(() -> new UserPreferenceNotFoundException(preferenceId));
+    }
+
+    public List<Build> getBuildsForPreference(@NonNull Long preferenceId) {
+        getPreference(preferenceId);
+        return buildRepository.findByUserPreferenceIdOrderByCreatedAtDesc(preferenceId);
+    }
+
+    public Build getBuild(@NonNull Long buildId) {
+        return buildRepository.findById(buildId)
+                .orElseThrow(() -> new BuildNotFoundException(buildId));
     }
 
     public RecommendationResponse recommendForPreference(@NonNull Long preferenceId) {
@@ -194,7 +210,59 @@ public class RecommendationService {
                 .add(priceOrZero(cooler == null ? null : cooler.getPrice()))
                 .add(priceOrZero(computerCase == null ? null : computerCase.getPrice()));
 
-        return new RecommendationResponse(cpu, gpu, motherboard, total);
+        Build savedBuild = saveGeneratedBuild(
+                preference,
+                cpu,
+                gpu,
+                motherboard,
+                ram,
+                storage,
+                psu,
+                cooler,
+                computerCase,
+                total
+        );
+
+        return new RecommendationResponse(
+                savedBuild.getId(),
+                preference.getId(),
+                cpu,
+                gpu,
+                motherboard,
+                ram,
+                storage,
+                psu,
+                cooler,
+                computerCase,
+                total,
+                savedBuild.getCreatedAt()
+        );
+    }
+
+    private Build saveGeneratedBuild(
+            UserPreference preference,
+            Cpu cpu,
+            Gpu gpu,
+            Motherboard motherboard,
+            Ram ram,
+            Storage storage,
+            Psu psu,
+            Cooler cooler,
+            Case computerCase,
+            BigDecimal totalPrice
+    ) {
+        Build build = new Build();
+        build.setUserPreference(preference);
+        build.setCpu(cpu);
+        build.setGpu(gpu);
+        build.setMotherboard(motherboard);
+        build.setRam(ram);
+        build.setStorage(storage);
+        build.setPsu(psu);
+        build.setCooler(cooler);
+        build.setComputerCase(computerCase);
+        build.setTotalPrice(totalPrice);
+        return buildRepository.save(build);
     }
 
     private BigDecimal priceOrZero(BigDecimal price) {
