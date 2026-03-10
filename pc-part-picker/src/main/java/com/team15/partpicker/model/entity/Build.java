@@ -37,6 +37,9 @@ public class Build {
     @JoinColumn(name = "preferenceId", nullable = false)
     @JsonIgnore
     private UserPreference userPreference;
+    
+    @NotNull
+    private String buildTitle;
 
     @ManyToOne
     @JoinColumn(name = "cpuId")
