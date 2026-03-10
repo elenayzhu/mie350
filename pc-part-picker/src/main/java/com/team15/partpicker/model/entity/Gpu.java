@@ -34,17 +34,23 @@ public class Gpu {
     @NotBlank
     private String brand;
 
+    @NotBlank
+    private String manufacturer;
+
     @Positive
-    @NotNull
-    private Integer LengthMm;
+    @Nullable
+    private Integer lengthMm;
 
     @Positive
     @NotNull
     private Integer vramGb;
 
     @Positive
-    @NotNull
-    private Integer wattages;
+    @Nullable
+    private Integer tdp;
+
+    @Nullable
+    private String color;
 
     @DecimalMin("0.0")
     @NotNull

@@ -34,15 +34,18 @@ public class Cooler {
     @NotBlank
     private String brand;
 
-    @NotBlank
+    @Nullable
     private String socket; // e.g. AM5, LGA1700
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer maxTdp; // cooler TDP capacity (watts)
 
     @NotBlank
     private String type; // Air, AIO 240mm, AIO 360mm
+
+    @Nullable
+    private String color;
 
     @DecimalMin("0.0")
     @NotNull

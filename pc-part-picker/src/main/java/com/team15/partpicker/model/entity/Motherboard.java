@@ -42,6 +42,12 @@ public class Motherboard {
     @NotBlank
     private String formFactor;
 
+    @Nullable
+    private String color;
+
+    @Nullable
+    private Integer memorySlots; // 2, 4
+
     @DecimalMin("0.0")
     @NotNull
     private BigDecimal price;

@@ -38,12 +38,15 @@ public class Psu {
     @NotNull
     private Integer wattage; // e.g., 650, 750, 850
 
-    @NotBlank
+    @Nullable
     private String efficiencyRating; // e.g., 80+ Bronze, 80+ Gold
 
     @NotBlank
     private String modularType; // Fully Modular, Semi-Modular, Non-Modular
 
+    @Nullable
+    private String color;
+    
     @DecimalMin("0.0")
     @NotNull
     private BigDecimal price;

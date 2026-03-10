@@ -39,11 +39,14 @@ public class Ram {
 
     @Positive
     @NotNull
-    private Integer speedMhz; // 3200, 3600, 6000
+    private Integer speedRatio; // changed from speedMhz to speedRatio (speedMhz / CAS Latency)
 
     @Positive
     @NotNull
     private Integer capacityGb; // 8, 16, 32
+
+    @Nullable
+    private String color;
 
     @DecimalMin("0.0")
     @NotNull
