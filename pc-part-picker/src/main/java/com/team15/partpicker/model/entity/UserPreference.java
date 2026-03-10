@@ -1,5 +1,10 @@
 package com.team15.partpicker.model.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -12,6 +17,10 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "user_preferences")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserPreference {
 
     @Id
@@ -32,95 +41,4 @@ public class UserPreference {
 
     @DecimalMin("0.0")
     private BigDecimal maxBudget;
-
-    public UserPreference() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getPreferredCpuBrand() {
-        return preferredCpuBrand;
-    }
-
-    public void setPreferredCpuBrand(String preferredCpuBrand) {
-        this.preferredCpuBrand = preferredCpuBrand;
-    }
-
-    public String getPreferredGpuBrand() {
-        return preferredGpuBrand;
-    }
-
-    public void setPreferredGpuBrand(String preferredGpuBrand) {
-        this.preferredGpuBrand = preferredGpuBrand;
-    }
-
-    public String getPreferredMotherboardBrand() {
-        return preferredMotherboardBrand;
-    }
-
-    public void setPreferredMotherboardBrand(String preferredMotherboardBrand) {
-        this.preferredMotherboardBrand = preferredMotherboardBrand;
-    }
-
-    public BigDecimal getMaxBudget() {
-        return maxBudget;
-    }
-
-    public void setMaxBudget(BigDecimal maxBudget) {
-        this.maxBudget = maxBudget;
-    }
-
-    public String getPreferredRamBrand() {
-        return preferredRamBrand;
-    }
-
-    public void setPreferredRamBrand(String preferredRamBrand) {
-        this.preferredRamBrand = preferredRamBrand;
-    }
-
-    public String getPreferredPsuBrand() {
-        return preferredPsuBrand;
-    }
-
-    public void setPreferredPsuBrand(String preferredPsuBrand) {
-        this.preferredPsuBrand = preferredPsuBrand;
-    }
-
-    public String getPreferredCaseBrand() {
-        return preferredCaseBrand;
-    }
-
-    public void setPreferredCaseBrand(String preferredCaseBrand) {
-        this.preferredCaseBrand = preferredCaseBrand;
-    }
-
-    public String getPreferredStorageBrand() {
-        return preferredStorageBrand;
-    }
-
-    public void setPreferredStorageBrand(String preferredStorageBrand) {
-        this.preferredStorageBrand = preferredStorageBrand;
-    }
-
-    public String getPreferredCoolerBrand() {
-        return preferredCoolerBrand;
-    }
-
-    public void setPreferredCoolerBrand(String preferredCoolerBrand) {
-        this.preferredCoolerBrand = preferredCoolerBrand;
-    }
-
-    public BuildCategory getBuildCategory() {
-        return buildCategory;
-    }
-
-    public void setBuildCategory(BuildCategory buildCategory) {
-        this.buildCategory = buildCategory;
-    }
 }

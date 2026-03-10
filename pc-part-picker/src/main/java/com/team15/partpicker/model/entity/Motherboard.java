@@ -1,5 +1,10 @@
 package com.team15.partpicker.model.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -12,6 +17,10 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "motherboards")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Motherboard {
 
     @Id
@@ -25,6 +34,9 @@ public class Motherboard {
     private String brand;
 
     @NotBlank
+    private String ddrType;
+
+    @NotBlank
     private String socket;
 
     @NotBlank
@@ -33,63 +45,4 @@ public class Motherboard {
     @DecimalMin("0.0")
     @NotNull
     private BigDecimal price;
-
-    public Motherboard() {
-    }
-
-    public Motherboard(String model, String brand, String socket, String formFactor, BigDecimal price) {
-        this.model = model;
-        this.brand = brand;
-        this.socket = socket;
-        this.formFactor = formFactor;
-        this.price = price;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public String getSocket() {
-        return socket;
-    }
-
-    public void setSocket(String socket) {
-        this.socket = socket;
-    }
-
-    public String getFormFactor() {
-        return formFactor;
-    }
-
-    public void setFormFactor(String formFactor) {
-        this.formFactor = formFactor;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
 }

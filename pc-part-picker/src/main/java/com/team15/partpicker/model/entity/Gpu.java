@@ -1,5 +1,10 @@
 package com.team15.partpicker.model.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,6 +18,10 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "gpus")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Gpu {
 
     @Id
@@ -27,59 +36,17 @@ public class Gpu {
 
     @Positive
     @NotNull
+    private Integer LengthMm;
+
+    @Positive
+    @NotNull
     private Integer vramGb;
+
+    @Positive
+    @NotNull
+    private Integer wattages;
 
     @DecimalMin("0.0")
     @NotNull
     private BigDecimal price;
-
-    public Gpu() {
-    }
-
-    public Gpu(String model, String brand, Integer vramGb, BigDecimal price) {
-        this.model = model;
-        this.brand = brand;
-        this.vramGb = vramGb;
-        this.price = price;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public Integer getVramGb() {
-        return vramGb;
-    }
-
-    public void setVramGb(Integer vramGb) {
-        this.vramGb = vramGb;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
 }
