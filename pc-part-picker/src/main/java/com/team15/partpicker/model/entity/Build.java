@@ -38,6 +38,10 @@ public class Build {
     @JsonIgnore
     private UserPreference userPreference;
 
+    @NotNull
+    @Column(nullable = false)
+    private String buildTitle;
+
     @ManyToOne
     @JoinColumn(name = "cpuId")
     private Cpu cpu;
