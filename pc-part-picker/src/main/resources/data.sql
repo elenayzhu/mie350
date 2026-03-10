@@ -1,3 +1,5 @@
+ALTER TABLE rams ALTER COLUMN capacityGb SET DEFAULT 16;
+
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 7 9800X3D', 'AMD', 'AM5', 8, 120, 451.5);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 7 7800X3D', 'AMD', 'AM5', 8, 120, 340.05);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 5 7600X', 'AMD', 'AM5', 6, 105, 170.49);
@@ -68,6 +70,8 @@ INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Core i7-8700
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 3 3200G', 'AMD', 'AM4', 4, 65, 73.45);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 5 3400G', 'AMD', 'AM4', 4, 65, 85.08);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Core i9-13900K', 'Intel', 'LGA1700', 24, 125, 434);
+
+INSERT INTO user_preferences (build_category, max_budget) VALUES ('GAMING', 1000.00);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Core i5-12400', 'Intel', 'LGA1700', 6, 65, 143.55);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 5 3600X', 'AMD', 'AM4', 6, 95, 171.97);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Core i9-9900K', 'Intel', 'LGA1151', 8, 95, 399);
@@ -10198,5 +10202,5 @@ INSERT INTO coolers (model, brand, socket, maxTdp, type, color, price) VALUES ('
 INSERT INTO coolers (model, brand, socket, maxTdp, type, color, price) VALUES ('Freezer A11', 'ARCTIC', NULL, NULL, 'Air', NULL, 68);
 INSERT INTO coolers (model, brand, socket, maxTdp, type, color, price) VALUES ('Win BR24', 'In', NULL, NULL, 'AIO 240', 'Black / White', 106.23);
 
-INSERT INTO user_preferences (preferredCpuBrand, preferredGpuBrand, preferredMotherboardBrand, maxBudget)
+INSERT INTO user_preferences (preferredCpuBrand, preferredGpuBrand, preferredMotherboardBrand, max_budget)
 VALUES ('AMD', 'NVIDIA', 'MSI', 1300.00);
