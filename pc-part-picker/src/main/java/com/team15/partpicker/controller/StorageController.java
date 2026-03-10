@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.exception.StorageNotFoundException;
 import com.team15.partpicker.model.entity.Storage;
 import com.team15.partpicker.model.repository.StorageRepository;
 import org.springframework.lang.NonNull;
@@ -45,7 +46,7 @@ public class StorageController {
     @GetMapping("/{storageId}")
     public Storage getStorage(@PathVariable @NonNull Long storageId) {
         return storageRepository.findById(storageId)
-                .orElseThrow(() -> new RuntimeException("Storage not found with id: " + storageId));
+                .orElseThrow(() -> new StorageNotFoundException(storageId));
     }
 
     @PostMapping

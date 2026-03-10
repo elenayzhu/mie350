@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.exception.PsuNotFoundException;
 import com.team15.partpicker.model.entity.Psu;
 import com.team15.partpicker.model.repository.PsuRepository;
 import org.springframework.lang.NonNull;
@@ -47,7 +48,7 @@ public class PsuController {
     @GetMapping("/{psuId}")
     public Psu getPsu(@PathVariable @NonNull Long psuId) {
         return psuRepository.findById(psuId)
-                .orElseThrow(() -> new RuntimeException("PSU not found with id: " + psuId));
+                .orElseThrow(() -> new PsuNotFoundException(psuId));
     }
 
     @PostMapping

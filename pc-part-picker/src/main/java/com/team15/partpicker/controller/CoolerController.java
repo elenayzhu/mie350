@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.exception.CoolerNotFoundException;
 import com.team15.partpicker.model.entity.Cooler;
 import com.team15.partpicker.model.repository.CoolerRepository;
 import org.springframework.lang.NonNull;
@@ -47,7 +48,7 @@ public class CoolerController {
     @GetMapping("/{coolerId}")
     public Cooler getCooler(@PathVariable @NonNull Long coolerId) {
         return coolerRepository.findById(coolerId)
-                .orElseThrow(() -> new RuntimeException("Cooler not found with id: " + coolerId));
+                .orElseThrow(() -> new CoolerNotFoundException(coolerId));
     }
 
     @PostMapping
