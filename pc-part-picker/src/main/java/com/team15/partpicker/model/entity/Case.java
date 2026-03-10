@@ -1,5 +1,10 @@
 package com.team15.partpicker.model.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,6 +18,10 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "cases")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Case {
 
     @Id
@@ -26,7 +35,7 @@ public class Case {
     private String brand;
 
     @NotBlank
-    private String formFactor; // e.g., "ATX", "Micro-ATX", "Mini-ITX"
+    private String formFactor; // e.g., ATX, Micro-ATX, Mini-ITX
 
     @Positive
     @NotNull
@@ -35,63 +44,4 @@ public class Case {
     @DecimalMin("0.0")
     @NotNull
     private BigDecimal price;
-
-    public Case() {
-    }
-
-    public Case(String model, String brand, String formFactor, Integer maxGpuLengthMm, BigDecimal price) {
-        this.model = model;
-        this.brand = brand;
-        this.formFactor = formFactor;
-        this.maxGpuLengthMm = maxGpuLengthMm;
-        this.price = price;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public String getFormFactor() {
-        return formFactor;
-    }
-
-    public void setFormFactor(String formFactor) {
-        this.formFactor = formFactor;
-    }
-
-    public Integer getMaxGpuLengthMm() {
-        return maxGpuLengthMm;
-    }
-
-    public void setMaxGpuLengthMm(Integer maxGpuLengthMm) {
-        this.maxGpuLengthMm = maxGpuLengthMm;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
 }

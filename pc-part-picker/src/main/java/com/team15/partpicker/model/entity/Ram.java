@@ -1,5 +1,10 @@
 package com.team15.partpicker.model.entity;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,6 +18,10 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "rams")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Ram {
 
     @Id
@@ -26,85 +35,17 @@ public class Ram {
     private String brand;
 
     @NotBlank
-    private String ddrType; // e.g., "DDR4", "DDR5"
+    private String ddrType; // DDR4, DDR5
 
     @Positive
     @NotNull
-    private Integer speedMhz; // e.g., 3200, 3600, 6000
+    private Integer speedMhz; // 3200, 3600, 6000
 
     @Positive
     @NotNull
-    private Integer capacityGb; // e.g., 8, 16, 32
+    private Integer capacityGb; // 8, 16, 32
 
     @DecimalMin("0.0")
     @NotNull
     private BigDecimal price;
-
-    public Ram() {
-    }
-
-    public Ram(String model, String brand, String ddrType, Integer speedMhz, Integer capacityGb, BigDecimal price) {
-        this.model = model;
-        this.brand = brand;
-        this.ddrType = ddrType;
-        this.speedMhz = speedMhz;
-        this.capacityGb = capacityGb;
-        this.price = price;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    public String getDdrType() {
-        return ddrType;
-    }
-
-    public void setDdrType(String ddrType) {
-        this.ddrType = ddrType;
-    }
-
-    public Integer getSpeedMhz() {
-        return speedMhz;
-    }
-
-    public void setSpeedMhz(Integer speedMhz) {
-        this.speedMhz = speedMhz;
-    }
-
-    public Integer getCapacityGb() {
-        return capacityGb;
-    }
-
-    public void setCapacityGb(Integer capacityGb) {
-        this.capacityGb = capacityGb;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
 }
