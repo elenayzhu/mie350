@@ -52,9 +52,9 @@ public class BuildController {
         return recommendationService.getBuildsForPreference(preferenceId);
     }
 
-    @DeleteMapping("/builds/{id}")
-    public ResponseEntity<Void> deleteBuild(@PathVariable Long id) {
-        buildService.deleteBuild(id);
+    @DeleteMapping("/builds/{buildId}")
+    public ResponseEntity<Void> deleteBuild(@PathVariable @NonNull Long buildId) {
+        recommendationService.deleteBuild(buildId);
         return ResponseEntity.noContent().build();
     }
 }
