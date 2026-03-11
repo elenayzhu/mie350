@@ -1,6 +1,7 @@
 package com.team15.partpicker.controller;
 
 import com.team15.partpicker.model.entity.Build;
+import com.team15.partpicker.model.request.CreateBuildRequest;
 import com.team15.partpicker.model.service.RecommendationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
@@ -30,13 +31,18 @@ public class BuildController {
         return recommendationService.getBuild(buildId);
     }
 
+    @GetMapping("/builds")
+    public List<Build> getAllBuilds() {
+        return recommendationService.getAllBuilds();
+    }
+
     @PostMapping("/preferences/{preferenceId}/builds")
     @ResponseStatus(HttpStatus.CREATED)
     public Build createBuild(
             @PathVariable @NonNull Long preferenceId,
-            @Valid @RequestBody @NonNull Build build
+            @Valid @RequestBody @NonNull CreateBuildRequest request
     ) {
-        return recommendationService.createBuild(preferenceId, build);
+        return recommendationService.createBuild(preferenceId, request.getBuildTitle());
     }
 
     @GetMapping("/preferences/{preferenceId}/builds")

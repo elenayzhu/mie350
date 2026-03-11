@@ -2,14 +2,9 @@ package com.team15.partpicker.model.service;
 
 import com.team15.partpicker.controller.RecommendationResponse;
 import com.team15.partpicker.exception.BuildNotFoundException;
-import com.team15.partpicker.exception.CaseNotFoundException;
-import com.team15.partpicker.exception.CoolerNotFoundException;
 import com.team15.partpicker.exception.CpuNotFoundException;
 import com.team15.partpicker.exception.GpuNotFoundException;
 import com.team15.partpicker.exception.MotherboardNotFoundException;
-import com.team15.partpicker.exception.PsuNotFoundException;
-import com.team15.partpicker.exception.RamNotFoundException;
-import com.team15.partpicker.exception.StorageNotFoundException;
 import com.team15.partpicker.exception.UserPreferenceNotFoundException;
 import com.team15.partpicker.model.entity.Build;
 import com.team15.partpicker.model.entity.BuildCategory;
@@ -129,66 +124,20 @@ public class RecommendationService {
         return buildRepository.findByUserPreferenceIdOrderByCreatedAtDesc(preferenceId);
     }
 
+    public List<Build> getAllBuilds() {
+        return buildRepository.findAll();
+    }
+
     public Build getBuild(@NonNull Long buildId) {
         return buildRepository.findById(buildId)
                 .orElseThrow(() -> new BuildNotFoundException(buildId));
     }
 
-    public Build createBuild(@NonNull Long preferenceId, @NonNull Build requestedBuild) {
-        UserPreference preference = getPreference(preferenceId);
-
-        Cpu cpu = requestedBuild.getCpu() == null || requestedBuild.getCpu().getId() == null
-                ? null
-                : getCpu(requestedBuild.getCpu().getId());
-        Gpu gpu = requestedBuild.getGpu() == null || requestedBuild.getGpu().getId() == null
-                ? null
-                : getGpu(requestedBuild.getGpu().getId());
-        Motherboard motherboard = requestedBuild.getMotherboard() == null || requestedBuild.getMotherboard().getId() == null
-                ? null
-                : getMotherboard(requestedBuild.getMotherboard().getId());
-        Ram ram = requestedBuild.getRam() == null || requestedBuild.getRam().getId() == null
-                ? null
-                : ramRepository.findById(requestedBuild.getRam().getId())
-                        .orElseThrow(() -> new RamNotFoundException(requestedBuild.getRam().getId()));
-        Storage storage = requestedBuild.getStorage() == null || requestedBuild.getStorage().getId() == null
-                ? null
-                : storageRepository.findById(requestedBuild.getStorage().getId())
-                        .orElseThrow(() -> new StorageNotFoundException(requestedBuild.getStorage().getId()));
-        Psu psu = requestedBuild.getPsu() == null || requestedBuild.getPsu().getId() == null
-                ? null
-                : psuRepository.findById(requestedBuild.getPsu().getId())
-                        .orElseThrow(() -> new PsuNotFoundException(requestedBuild.getPsu().getId()));
-        Cooler cooler = requestedBuild.getCooler() == null || requestedBuild.getCooler().getId() == null
-                ? null
-                : coolerRepository.findById(requestedBuild.getCooler().getId())
-                        .orElseThrow(() -> new CoolerNotFoundException(requestedBuild.getCooler().getId()));
-        Case computerCase = requestedBuild.getComputerCase() == null || requestedBuild.getComputerCase().getId() == null
-                ? null
-                : caseRepository.findById(requestedBuild.getComputerCase().getId())
-                        .orElseThrow(() -> new CaseNotFoundException(requestedBuild.getComputerCase().getId()));
-
-        BigDecimal totalPrice = priceOrZero(cpu == null ? null : cpu.getPrice())
-                .add(priceOrZero(gpu == null ? null : gpu.getPrice()))
-                .add(priceOrZero(motherboard == null ? null : motherboard.getPrice()))
-                .add(priceOrZero(ram == null ? null : ram.getPrice()))
-                .add(priceOrZero(storage == null ? null : storage.getPrice()))
-                .add(priceOrZero(psu == null ? null : psu.getPrice()))
-                .add(priceOrZero(cooler == null ? null : cooler.getPrice()))
-                .add(priceOrZero(computerCase == null ? null : computerCase.getPrice()));
-
-        return saveGeneratedBuild(
-                preference,
-                cpu,
-                gpu,
-                motherboard,
-                ram,
-                storage,
-                psu,
-                cooler,
-                computerCase,
-                requestedBuild.getBuildTitle(),
-                totalPrice
-        );
+    public Build createBuild(@NonNull Long preferenceId, @NonNull String buildTitle) {
+        RecommendationResponse recommendation = recommendForPreference(preferenceId);
+        Build savedBuild = getBuild(recommendation.getBuildId());
+        savedBuild.setBuildTitle(buildTitle);
+        return buildRepository.save(savedBuild);
     }
 
     public RecommendationResponse recommendForPreference(@NonNull Long preferenceId) {
