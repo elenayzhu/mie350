@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -37,8 +38,10 @@ public class UserPreference {
     private String preferredCoolerBrand;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "build_category")
     private BuildCategory buildCategory;
 
     @DecimalMin("0.0")
+    @Column(name = "max_budget")
     private BigDecimal maxBudget;
 }

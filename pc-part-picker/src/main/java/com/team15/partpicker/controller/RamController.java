@@ -38,7 +38,7 @@ public class RamController {
         return ramRepository.findAll().stream()
                 .filter(ram -> brand == null || ram.getBrand().equalsIgnoreCase(brand))
                 .filter(ram -> ddrType == null || ram.getDdrType().equalsIgnoreCase(ddrType))
-                .filter(ram -> minSpeed == null || ram.getSpeedMhz() >= minSpeed)
+                .filter(ram -> minSpeed == null || ram.getSpeedRatio() >= minSpeed)
                 .filter(ram -> minCapacity == null || ram.getCapacityGb() >= minCapacity)
                 .filter(ram -> minPrice == null || ram.getPrice().compareTo(minPrice) >= 0)
                 .filter(ram -> maxPrice == null || ram.getPrice().compareTo(maxPrice) <= 0)

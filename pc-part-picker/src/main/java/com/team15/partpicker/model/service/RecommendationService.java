@@ -124,9 +124,20 @@ public class RecommendationService {
         return buildRepository.findByUserPreferenceIdOrderByCreatedAtDesc(preferenceId);
     }
 
+    public List<Build> getAllBuilds() {
+        return buildRepository.findAll();
+    }
+
     public Build getBuild(@NonNull Long buildId) {
         return buildRepository.findById(buildId)
                 .orElseThrow(() -> new BuildNotFoundException(buildId));
+    }
+
+    public Build createBuild(@NonNull Long preferenceId, @NonNull String buildTitle) {
+        RecommendationResponse recommendation = recommendForPreference(preferenceId);
+        Build savedBuild = getBuild(recommendation.getBuildId());
+        savedBuild.setBuildTitle(buildTitle);
+        return buildRepository.save(savedBuild);
     }
 
     public RecommendationResponse recommendForPreference(@NonNull Long preferenceId) {
@@ -220,6 +231,7 @@ public class RecommendationService {
                 psu,
                 cooler,
                 computerCase,
+                "Recommended Build",
                 total
         );
 
@@ -249,10 +261,12 @@ public class RecommendationService {
             Psu psu,
             Cooler cooler,
             Case computerCase,
+            String buildTitle,
             BigDecimal totalPrice
     ) {
         Build build = new Build();
         build.setUserPreference(preference);
+        build.setBuildTitle(buildTitle);
         build.setCpu(cpu);
         build.setGpu(gpu);
         build.setMotherboard(motherboard);
