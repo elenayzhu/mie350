@@ -1,5 +1,3 @@
-ALTER TABLE rams ALTER COLUMN capacityGb SET DEFAULT 16;
-
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 7 9800X3D', 'AMD', 'AM5', 8, 120, 451.5);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 7 7800X3D', 'AMD', 'AM5', 8, 120, 340.05);
 INSERT INTO cpus (model, brand, socket, cores, tdp, price) VALUES ('Ryzen 5 7600X', 'AMD', 'AM5', 6, 105, 170.49);
