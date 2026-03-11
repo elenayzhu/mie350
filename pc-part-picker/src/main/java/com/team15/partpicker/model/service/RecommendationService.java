@@ -629,4 +629,10 @@ public class RecommendationService {
                     .subtract(cooler);
         }
     }
+
+    public void deleteBuild(Long id) {
+        Build build = buildRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Build not found"));
+        buildRepository.delete(build);
+    }
 }

@@ -4,7 +4,9 @@ import com.team15.partpicker.model.entity.Build;
 import com.team15.partpicker.model.dto.CreateBuildRequest;
 import com.team15.partpicker.model.service.RecommendationService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,14 +28,14 @@ public class BuildController {
         this.recommendationService = recommendationService;
     }
 
-    @GetMapping("/builds/{buildId}")
-    public Build getBuild(@PathVariable @NonNull Long buildId) {
-        return recommendationService.getBuild(buildId);
-    }
-
     @GetMapping("/builds")
     public List<Build> getAllBuilds() {
         return recommendationService.getAllBuilds();
+    }
+
+    @GetMapping("/builds/{buildId}")
+    public Build getBuild(@PathVariable @NonNull Long buildId) {
+        return recommendationService.getBuild(buildId);
     }
 
     @PostMapping("/preferences/{preferenceId}/builds")
@@ -48,5 +50,11 @@ public class BuildController {
     @GetMapping("/preferences/{preferenceId}/builds")
     public List<Build> getBuildsForPreference(@PathVariable @NonNull Long preferenceId) {
         return recommendationService.getBuildsForPreference(preferenceId);
+    }
+
+    @DeleteMapping("/builds/{id}")
+    public ResponseEntity<Void> deleteBuild(@PathVariable Long id) {
+        buildService.deleteBuild(id);
+        return ResponseEntity.noContent().build();
     }
 }
