@@ -1,7 +1,7 @@
 package com.team15.partpicker.controller;
 
 import com.team15.partpicker.model.entity.Build;
-import com.team15.partpicker.model.request.CreateBuildRequest;
+import com.team15.partpicker.model.dto.CreateBuildRequest;
 import com.team15.partpicker.model.service.RecommendationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
