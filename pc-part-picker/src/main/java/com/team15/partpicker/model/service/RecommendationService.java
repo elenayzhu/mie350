@@ -3,7 +3,9 @@ package com.team15.partpicker.model.service;
 import com.team15.partpicker.controller.RecommendationResponse;
 import com.team15.partpicker.exception.BuildNotFoundException;
 import com.team15.partpicker.exception.CpuNotFoundException;
+import com.team15.partpicker.exception.DuplicateEmailException;
 import com.team15.partpicker.exception.GpuNotFoundException;
+import com.team15.partpicker.exception.InvalidLoginException;
 import com.team15.partpicker.exception.MotherboardNotFoundException;
 import com.team15.partpicker.exception.UserPreferenceNotFoundException;
 import com.team15.partpicker.exception.UserProfileNotFoundException;
@@ -32,9 +34,12 @@ import com.team15.partpicker.model.repository.UserPreferenceRepository;
 import com.team15.partpicker.model.repository.UserProfileRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @Service
 public class RecommendationService {
@@ -126,6 +131,14 @@ public class RecommendationService {
     }
 
     public UserProfile createUserProfile(@NonNull UserProfile userProfile) {
+        String email = normalizedOrNull(userProfile.getEmail());
+        if (email != null) {
+            userProfile.setEmail(email);
+            userProfileRepository.findByEmailIgnoreCase(email)
+                    .ifPresent(existing -> {
+                        throw new DuplicateEmailException(email);
+                    });
+        }
         return userProfileRepository.save(userProfile);
     }
 
@@ -134,12 +147,53 @@ public class RecommendationService {
                 .orElseThrow(() -> new UserProfileNotFoundException(profileId));
     }
 
+    public UserProfile getUserProfileById(@NonNull Long profileId) {
+        return getUserProfile(profileId);
+    }
+
+    public UserProfile login(@NonNull String email, @NonNull String password) {
+        String normalizedEmail = normalizedOrNull(email);
+        if (normalizedEmail == null || password == null || password.isBlank()) {
+            throw new InvalidLoginException();
+        }
+        UserProfile userProfile = userProfileRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseThrow(InvalidLoginException::new);
+        if (!userProfile.getPassword().equals(password)) {
+            throw new InvalidLoginException();
+        }
+        return userProfile;
+    }
+
     public UserProfile updateUserProfile(@NonNull Long profileId, @NonNull UserProfile updatedUserProfile) {
-        UserProfile existingUserProfile = getUserProfile(profileId);
-        existingUserProfile.setPassword(updatedUserProfile.getPassword());
-        existingUserProfile.setEmail(updatedUserProfile.getEmail());
-        existingUserProfile.setFirstName(updatedUserProfile.getFirstName());
-        existingUserProfile.setLastName(updatedUserProfile.getLastName());
+        UserProfile existingUserProfile = getUserProfileById(profileId);
+
+        if (updatedUserProfile.getId() != null && !updatedUserProfile.getId().equals(profileId)) {
+            throw new ResponseStatusException(BAD_REQUEST, "Path profileId does not match request body id");
+        }
+
+        if (hasText(updatedUserProfile.getPassword())) {
+            existingUserProfile.setPassword(updatedUserProfile.getPassword().trim());
+        }
+
+        if (hasText(updatedUserProfile.getEmail())) {
+            String email = updatedUserProfile.getEmail().trim();
+            userProfileRepository.findByEmailIgnoreCase(email)
+                    .ifPresent(existing -> {
+                        if (!existing.getId().equals(profileId)) {
+                            throw new DuplicateEmailException(email);
+                        }
+                    });
+            existingUserProfile.setEmail(email);
+        }
+
+        if (hasText(updatedUserProfile.getFirstName())) {
+            existingUserProfile.setFirstName(updatedUserProfile.getFirstName().trim());
+        }
+
+        if (hasText(updatedUserProfile.getLastName())) {
+            existingUserProfile.setLastName(updatedUserProfile.getLastName().trim());
+        }
+
         return userProfileRepository.save(existingUserProfile);
     }
 
@@ -305,6 +359,18 @@ public class RecommendationService {
 
     private BigDecimal priceOrZero(BigDecimal price) {
         return price == null ? BigDecimal.ZERO : price;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private String normalizedOrNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private Cpu chooseCpu(UserPreference preference, BigDecimal budget) {

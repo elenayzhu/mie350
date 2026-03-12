@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.model.dto.LoginRequest;
 import com.team15.partpicker.model.entity.UserProfile;
 import com.team15.partpicker.model.service.RecommendationService;
 import org.springframework.http.HttpStatus;
@@ -31,15 +32,20 @@ public class UserProfileController {
         return recommendationService.createUserProfile(userProfile);
     }
 
-    @GetMapping("/user/{userId}")
-    public UserProfile getUserProfile(@PathVariable @NonNull Long userId) {
-        return recommendationService.getUserProfile(userId);
+    @PostMapping("/login")
+    public UserProfile login(@Valid @RequestBody @NonNull LoginRequest loginRequest) {
+        return recommendationService.login(loginRequest.getEmail(), loginRequest.getPassword());
+    }
+
+    @GetMapping({"/{profileId}", "/user/{profileId}"})
+    public UserProfile getUserProfileById(@PathVariable @NonNull Long profileId) {
+        return recommendationService.getUserProfileById(profileId);
     }
 
     @PutMapping("/{profileId}")
     public UserProfile updateUserProfile(
             @PathVariable @NonNull Long profileId,
-            @Valid @RequestBody @NonNull UserProfile userProfile
+            @RequestBody @NonNull UserProfile userProfile
     ) {
         return recommendationService.updateUserProfile(profileId, userProfile);
     }
