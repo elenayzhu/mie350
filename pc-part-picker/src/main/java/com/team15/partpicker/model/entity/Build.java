@@ -38,6 +38,11 @@ public class Build {
     @JsonIgnore
     private UserPreference userPreference;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "userProfileId")
+    @JsonIgnore
+    private UserProfile userProfile;
+
     @NotNull
     @Column(nullable = false)
     private String buildTitle;
@@ -91,5 +96,9 @@ public class Build {
 
     public Long getPreferenceId() {
         return userPreference == null ? null : userPreference.getId();
+    }
+
+    public Long getUserProfileId() {
+        return userProfile == null ? null : userProfile.getId();
     }
 }

@@ -6,6 +6,7 @@ import com.team15.partpicker.exception.CpuNotFoundException;
 import com.team15.partpicker.exception.GpuNotFoundException;
 import com.team15.partpicker.exception.MotherboardNotFoundException;
 import com.team15.partpicker.exception.UserPreferenceNotFoundException;
+import com.team15.partpicker.exception.UserProfileNotFoundException;
 import com.team15.partpicker.model.entity.Build;
 import com.team15.partpicker.model.entity.BuildCategory;
 import com.team15.partpicker.model.entity.Case;
@@ -17,6 +18,7 @@ import com.team15.partpicker.model.entity.Psu;
 import com.team15.partpicker.model.entity.Ram;
 import com.team15.partpicker.model.entity.Storage;
 import com.team15.partpicker.model.entity.UserPreference;
+import com.team15.partpicker.model.entity.UserProfile;
 import com.team15.partpicker.model.repository.BuildRepository;
 import com.team15.partpicker.model.repository.CaseRepository;
 import com.team15.partpicker.model.repository.CoolerRepository;
@@ -27,6 +29,7 @@ import com.team15.partpicker.model.repository.PsuRepository;
 import com.team15.partpicker.model.repository.RamRepository;
 import com.team15.partpicker.model.repository.StorageRepository;
 import com.team15.partpicker.model.repository.UserPreferenceRepository;
+import com.team15.partpicker.model.repository.UserProfileRepository;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +48,7 @@ public class RecommendationService {
     private final StorageRepository storageRepository;
     private final CoolerRepository coolerRepository;
     private final UserPreferenceRepository userPreferenceRepository;
+    private final UserProfileRepository userProfileRepository;
     private final BuildRepository buildRepository;
 
     public RecommendationService(
@@ -57,6 +61,7 @@ public class RecommendationService {
             StorageRepository storageRepository,
             CoolerRepository coolerRepository,
             UserPreferenceRepository userPreferenceRepository,
+            UserProfileRepository userProfileRepository,
             BuildRepository buildRepository
     ) {
         this.cpuRepository = cpuRepository;
@@ -68,6 +73,7 @@ public class RecommendationService {
         this.storageRepository = storageRepository;
         this.coolerRepository = coolerRepository;
         this.userPreferenceRepository = userPreferenceRepository;
+        this.userProfileRepository = userProfileRepository;
         this.buildRepository = buildRepository;
     }
 
@@ -117,6 +123,24 @@ public class RecommendationService {
     public UserPreference getPreference(@NonNull Long preferenceId) {
         return userPreferenceRepository.findById(preferenceId)
                 .orElseThrow(() -> new UserPreferenceNotFoundException(preferenceId));
+    }
+
+    public UserProfile createUserProfile(@NonNull UserProfile userProfile) {
+        return userProfileRepository.save(userProfile);
+    }
+
+    public UserProfile getUserProfile(@NonNull Long profileId) {
+        return userProfileRepository.findById(profileId)
+                .orElseThrow(() -> new UserProfileNotFoundException(profileId));
+    }
+
+    public UserProfile updateUserProfile(@NonNull Long profileId, @NonNull UserProfile updatedUserProfile) {
+        UserProfile existingUserProfile = getUserProfile(profileId);
+        existingUserProfile.setPassword(updatedUserProfile.getPassword());
+        existingUserProfile.setEmail(updatedUserProfile.getEmail());
+        existingUserProfile.setFirstName(updatedUserProfile.getFirstName());
+        existingUserProfile.setLastName(updatedUserProfile.getLastName());
+        return userProfileRepository.save(existingUserProfile);
     }
 
     public List<Build> getBuildsForPreference(@NonNull Long preferenceId) {
