@@ -4,6 +4,7 @@ import com.team15.partpicker.model.entity.UserProfile;
 import com.team15.partpicker.model.service.RecommendationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -28,6 +29,11 @@ public class UserProfileController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserProfile createUserProfile(@Valid @RequestBody @NonNull UserProfile userProfile) {
         return recommendationService.createUserProfile(userProfile);
+    }
+
+    @GetMapping("/user/{userId}")
+    public UserProfile getUserProfile(@PathVariable @NonNull Long userId) {
+        return recommendationService.getUserProfile(userId);
     }
 
     @PutMapping("/{profileId}")
