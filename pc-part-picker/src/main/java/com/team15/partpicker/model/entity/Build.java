@@ -87,13 +87,6 @@ public class Build {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist
-    private void onCreate() {
-        if (createdAt == null) {
-            createdAt = LocalDateTime.now();
-        }
-    }
-
     public Long getPreferenceId() {
         return userPreference == null ? null : userPreference.getId();
     }
