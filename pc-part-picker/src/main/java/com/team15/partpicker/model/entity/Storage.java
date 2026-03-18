@@ -3,14 +3,9 @@ package com.team15.partpicker.model.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -21,18 +16,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class Storage {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank
-    private String model;
-
-    @NotBlank
-    private String brand;
+public class Storage extends Part {
 
     @NotBlank
     private String type; // NVMe SSD, SATA SSD, HDD
@@ -41,7 +25,9 @@ public class Storage {
     @NotNull
     private Integer capacityGb; // 500, 1000, 2000
 
-    @DecimalMin("0.0")
-    @NotNull
-    private BigDecimal price;
+    public Storage(Long id, String model, String brand, String type, Integer capacityGb, BigDecimal price) {
+        super(id, model, brand, price);
+        this.type = type;
+        this.capacityGb = capacityGb;
+    }
 }

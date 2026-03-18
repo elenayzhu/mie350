@@ -3,16 +3,10 @@ package com.team15.partpicker.model.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import org.springframework.lang.Nullable;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.math.BigDecimal;
@@ -22,18 +16,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class Case {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank
-    private String model;
-
-    @NotBlank
-    private String brand;
+public class Case extends Part {
 
     @Nullable
     private String formFactor; // e.g., ATX, Micro-ATX, Mini-ITX
@@ -48,7 +31,20 @@ public class Case {
     @Nullable
     private String color;
 
-    @DecimalMin("0.0")
-    @NotNull
-    private BigDecimal price;
+    public Case(
+            Long id,
+            String model,
+            String brand,
+            String formFactor,
+            Integer maxGpuLengthMm,
+            String type,
+            String color,
+            BigDecimal price
+    ) {
+        super(id, model, brand, price);
+        this.formFactor = formFactor;
+        this.maxGpuLengthMm = maxGpuLengthMm;
+        this.type = type;
+        this.color = color;
+    }
 }

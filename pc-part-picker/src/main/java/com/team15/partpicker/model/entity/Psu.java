@@ -3,15 +3,10 @@ package com.team15.partpicker.model.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import org.springframework.lang.Nullable;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -22,18 +17,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class Psu {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank
-    private String model;
-
-    @NotBlank
-    private String brand;
+public class Psu extends Part {
 
     @Positive
     @NotNull
@@ -47,8 +31,21 @@ public class Psu {
 
     @Nullable
     private String color;
-    
-    @DecimalMin("0.0")
-    @NotNull
-    private BigDecimal price;
+
+    public Psu(
+            Long id,
+            String model,
+            String brand,
+            Integer wattage,
+            String efficiencyRating,
+            String modularType,
+            String color,
+            BigDecimal price
+    ) {
+        super(id, model, brand, price);
+        this.wattage = wattage;
+        this.efficiencyRating = efficiencyRating;
+        this.modularType = modularType;
+        this.color = color;
+    }
 }

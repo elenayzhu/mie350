@@ -3,17 +3,11 @@ package com.team15.partpicker.model.entity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import org.springframework.lang.Nullable;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import javax.persistence.Table;
-import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Entity
@@ -21,18 +15,7 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class Motherboard {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @NotBlank
-    private String model;
-
-    @NotBlank
-    private String brand;
+public class Motherboard extends Part {
 
     @NotBlank
     private String ddrType;
@@ -49,7 +32,22 @@ public class Motherboard {
     @Nullable
     private Integer memorySlots; // 2, 4
 
-    @DecimalMin("0.0")
-    @NotNull
-    private BigDecimal price;
+    public Motherboard(
+            Long id,
+            String model,
+            String brand,
+            String ddrType,
+            String socket,
+            String formFactor,
+            String color,
+            Integer memorySlots,
+            BigDecimal price
+    ) {
+        super(id, model, brand, price);
+        this.ddrType = ddrType;
+        this.socket = socket;
+        this.formFactor = formFactor;
+        this.color = color;
+        this.memorySlots = memorySlots;
+    }
 }
