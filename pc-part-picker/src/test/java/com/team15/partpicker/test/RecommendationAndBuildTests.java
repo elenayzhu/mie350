@@ -1,10 +1,13 @@
 package com.team15.partpicker.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.team15.partpicker.model.entity.Build;
+import com.team15.partpicker.model.entity.UserProfile;
 import com.team15.partpicker.model.repository.BuildRepository;
 import com.team15.partpicker.model.repository.UserPreferenceRepository;
+import com.team15.partpicker.model.repository.UserProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +42,9 @@ class RecommendationAndBuildTests {
 
     @Autowired
     private BuildRepository buildRepository;
+
+    @Autowired
+    private UserProfileRepository userProfileRepository;
 
     @Test
     void getRecommendationForSeededPreference() throws Exception {
@@ -134,5 +140,135 @@ class RecommendationAndBuildTests {
 
         assertEquals(204, deleteResponse.getStatus());
         assertTrue(buildRepository.findById(buildId).isEmpty());
+    }
+
+    @Test
+    void userScopedBuildsAreIsolatedByProfile() throws Exception {
+        String firstEmail = "build-owner-one@test.com";
+        String secondEmail = "build-owner-two@test.com";
+        deleteExistingProfile(firstEmail);
+        deleteExistingProfile(secondEmail);
+
+        UserProfile firstProfile = saveUserProfile(firstEmail, "Build", "OwnerOne");
+        UserProfile secondProfile = saveUserProfile(secondEmail, "Build", "OwnerTwo");
+
+        Long firstPreferenceId = null;
+        Long secondPreferenceId = null;
+        Long firstBuildId = null;
+        Long secondBuildId = null;
+
+        try {
+            ObjectNode preferenceJson = objectMapper.createObjectNode();
+            preferenceJson.put("buildCategory", "GAMING");
+            preferenceJson.put("maxBudget", 1300);
+
+            MockHttpServletResponse firstPreferenceResponse = mockMvc.perform(
+                            post("/profiles/" + firstProfile.getId() + "/preferences")
+                                    .contentType("application/json")
+                                    .content(preferenceJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, firstPreferenceResponse.getStatus());
+            ObjectNode firstPreferenceJson = objectMapper.readValue(firstPreferenceResponse.getContentAsString(), ObjectNode.class);
+            firstPreferenceId = firstPreferenceJson.get("id").longValue();
+            assertEquals(firstProfile.getId(), firstPreferenceJson.get("userProfileId").longValue());
+
+            MockHttpServletResponse secondPreferenceResponse = mockMvc.perform(
+                            post("/profiles/" + secondProfile.getId() + "/preferences")
+                                    .contentType("application/json")
+                                    .content(preferenceJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, secondPreferenceResponse.getStatus());
+            ObjectNode secondPreferenceJson = objectMapper.readValue(secondPreferenceResponse.getContentAsString(), ObjectNode.class);
+            secondPreferenceId = secondPreferenceJson.get("id").longValue();
+            assertEquals(secondProfile.getId(), secondPreferenceJson.get("userProfileId").longValue());
+
+            ObjectNode firstBuildJson = objectMapper.createObjectNode();
+            firstBuildJson.put("buildTitle", "First Profile Build");
+
+            MockHttpServletResponse firstBuildResponse = mockMvc.perform(
+                            post("/profiles/" + firstProfile.getId() + "/preferences/" + firstPreferenceId + "/builds")
+                                    .contentType("application/json")
+                                    .content(firstBuildJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(201, firstBuildResponse.getStatus());
+            ObjectNode createdFirstBuildJson = objectMapper.readValue(firstBuildResponse.getContentAsString(), ObjectNode.class);
+            firstBuildId = createdFirstBuildJson.get("id").longValue();
+            assertEquals(firstProfile.getId(), createdFirstBuildJson.get("userProfileId").longValue());
+
+            ObjectNode secondBuildJson = objectMapper.createObjectNode();
+            secondBuildJson.put("buildTitle", "Second Profile Build");
+
+            MockHttpServletResponse secondBuildResponse = mockMvc.perform(
+                            post("/profiles/" + secondProfile.getId() + "/preferences/" + secondPreferenceId + "/builds")
+                                    .contentType("application/json")
+                                    .content(secondBuildJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(201, secondBuildResponse.getStatus());
+            ObjectNode createdSecondBuildJson = objectMapper.readValue(secondBuildResponse.getContentAsString(), ObjectNode.class);
+            secondBuildId = createdSecondBuildJson.get("id").longValue();
+            assertEquals(secondProfile.getId(), createdSecondBuildJson.get("userProfileId").longValue());
+
+            Build firstSavedBuild = buildRepository.findById(firstBuildId).orElseThrow();
+            assertEquals(firstProfile.getId(), firstSavedBuild.getUserProfileId());
+
+            MockHttpServletResponse firstScopedResponse = mockMvc.perform(
+                            get("/profiles/" + firstProfile.getId() + "/builds"))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, firstScopedResponse.getStatus());
+            ArrayNode firstScopedBuilds = (ArrayNode) objectMapper.readTree(firstScopedResponse.getContentAsString());
+            assertEquals(1, firstScopedBuilds.size());
+            assertEquals(firstBuildId.longValue(), firstScopedBuilds.get(0).get("id").longValue());
+            assertEquals(firstProfile.getId(), firstScopedBuilds.get(0).get("userProfileId").longValue());
+
+            MockHttpServletResponse secondScopedResponse = mockMvc.perform(
+                            get("/profiles/" + secondProfile.getId() + "/builds"))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, secondScopedResponse.getStatus());
+            ArrayNode secondScopedBuilds = (ArrayNode) objectMapper.readTree(secondScopedResponse.getContentAsString());
+            assertEquals(1, secondScopedBuilds.size());
+            assertEquals(secondBuildId.longValue(), secondScopedBuilds.get(0).get("id").longValue());
+            assertEquals(secondProfile.getId(), secondScopedBuilds.get(0).get("userProfileId").longValue());
+        } finally {
+            if (firstBuildId != null) {
+                buildRepository.deleteById(firstBuildId);
+            }
+            if (secondBuildId != null) {
+                buildRepository.deleteById(secondBuildId);
+            }
+            if (firstPreferenceId != null) {
+                userPreferenceRepository.deleteById(firstPreferenceId);
+            }
+            if (secondPreferenceId != null) {
+                userPreferenceRepository.deleteById(secondPreferenceId);
+            }
+            userProfileRepository.deleteById(firstProfile.getId());
+            userProfileRepository.deleteById(secondProfile.getId());
+        }
+    }
+
+    private UserProfile saveUserProfile(String email, String firstName, String lastName) {
+        UserProfile userProfile = new UserProfile();
+        userProfile.setEmail(email);
+        userProfile.setPassword("secret123");
+        userProfile.setFirstName(firstName);
+        userProfile.setLastName(lastName);
+        return userProfileRepository.save(userProfile);
+    }
+
+    private void deleteExistingProfile(String email) {
+        userProfileRepository.findByEmailIgnoreCase(email)
+                .ifPresent(existingProfile -> userProfileRepository.deleteById(existingProfile.getId()));
     }
 }

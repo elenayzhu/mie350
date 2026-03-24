@@ -122,12 +122,26 @@ public class RecommendationService {
     }
 
     public UserPreference createPreference(@NonNull UserPreference userPreference) {
+        return userPreferenceRepository.save(attachManagedUserProfile(userPreference));
+    }
+
+    public UserPreference createPreferenceForUserProfile(@NonNull Long profileId, @NonNull UserPreference userPreference) {
+        Long requestProfileId = userPreference.getUserProfileId();
+        if (requestProfileId != null && !requestProfileId.equals(profileId)) {
+            throw new ResponseStatusException(BAD_REQUEST, "Path profileId does not match request body userProfileId");
+        }
+        userPreference.setUserProfile(getUserProfile(profileId));
         return userPreferenceRepository.save(userPreference);
     }
 
     public UserPreference getPreference(@NonNull Long preferenceId) {
         return userPreferenceRepository.findById(preferenceId)
                 .orElseThrow(() -> new UserPreferenceNotFoundException(preferenceId));
+    }
+
+    public List<UserPreference> getPreferencesForUserProfile(@NonNull Long profileId) {
+        getUserProfile(profileId);
+        return userPreferenceRepository.findByUserProfile_IdOrderByIdDesc(profileId);
     }
 
     public UserProfile createUserProfile(@NonNull UserProfile userProfile) {
@@ -138,6 +152,15 @@ public class RecommendationService {
                     .ifPresent(existing -> {
                         throw new DuplicateEmailException(email);
                     });
+        }
+        if (hasText(userProfile.getPassword())) {
+            userProfile.setPassword(userProfile.getPassword().trim());
+        }
+        if (hasText(userProfile.getFirstName())) {
+            userProfile.setFirstName(userProfile.getFirstName().trim());
+        }
+        if (hasText(userProfile.getLastName())) {
+            userProfile.setLastName(userProfile.getLastName().trim());
         }
         return userProfileRepository.save(userProfile);
     }
@@ -176,7 +199,7 @@ public class RecommendationService {
         }
 
         if (hasText(updatedUserProfile.getEmail())) {
-            String email = updatedUserProfile.getEmail().trim();
+            String email = normalizedOrNull(updatedUserProfile.getEmail());
             userProfileRepository.findByEmailIgnoreCase(email)
                     .ifPresent(existing -> {
                         if (!existing.getId().equals(profileId)) {
@@ -202,6 +225,11 @@ public class RecommendationService {
         return buildRepository.findByUserPreferenceIdOrderByCreatedAtDesc(preferenceId);
     }
 
+    public List<Build> getBuildsForUserProfile(@NonNull Long profileId) {
+        getUserProfile(profileId);
+        return buildRepository.findByUserProfile_IdOrderByCreatedAtDesc(profileId);
+    }
+
     public List<Build> getAllBuilds() {
         return buildRepository.findAll();
     }
@@ -216,6 +244,16 @@ public class RecommendationService {
         Build savedBuild = getBuild(recommendation.getBuildId());
         savedBuild.setBuildTitle(buildTitle);
         return buildRepository.save(savedBuild);
+    }
+
+    public Build createBuildForUserProfile(
+            @NonNull Long profileId,
+            @NonNull Long preferenceId,
+            @NonNull String buildTitle
+    ) {
+        getUserProfile(profileId);
+        getOwnedPreference(profileId, preferenceId);
+        return createBuild(preferenceId, buildTitle);
     }
 
     public RecommendationResponse recommendForPreference(@NonNull Long preferenceId) {
@@ -344,6 +382,7 @@ public class RecommendationService {
     ) {
         Build build = new Build();
         build.setUserPreference(preference);
+        build.setUserProfile(preference.getUserProfile());
         build.setBuildTitle(buildTitle);
         build.setCpu(cpu);
         build.setGpu(gpu);
@@ -371,6 +410,25 @@ public class RecommendationService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private UserPreference attachManagedUserProfile(UserPreference userPreference) {
+        Long profileId = userPreference.getUserProfileId();
+        if (profileId == null) {
+            userPreference.setUserProfile(null);
+            return userPreference;
+        }
+        userPreference.setUserProfile(getUserProfile(profileId));
+        return userPreference;
+    }
+
+    private UserPreference getOwnedPreference(@NonNull Long profileId, @NonNull Long preferenceId) {
+        UserPreference preference = getPreference(preferenceId);
+        Long ownerId = preference.getUserProfileId();
+        if (ownerId == null || !ownerId.equals(profileId)) {
+            throw new ResponseStatusException(BAD_REQUEST, "Preference does not belong to this user profile");
+        }
+        return preference;
     }
 
     private Cpu chooseCpu(UserPreference preference, BigDecimal budget) {

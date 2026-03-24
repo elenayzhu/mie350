@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping
@@ -28,9 +29,22 @@ public class RecommendationController {
         return recommendationService.createPreference(userPreference);
     }
 
+    @PostMapping("/profiles/{profileId}/preferences")
+    public UserPreference createPreferenceForUserProfile(
+            @PathVariable @NonNull Long profileId,
+            @Valid @RequestBody @NonNull UserPreference userPreference
+    ) {
+        return recommendationService.createPreferenceForUserProfile(profileId, userPreference);
+    }
+
     @GetMapping("/preferences/{preferenceId}")
     public UserPreference getPreference(@PathVariable @NonNull Long preferenceId) {
         return recommendationService.getPreference(preferenceId);
+    }
+
+    @GetMapping("/profiles/{profileId}/preferences")
+    public List<UserPreference> getPreferencesForUserProfile(@PathVariable @NonNull Long profileId) {
+        return recommendationService.getPreferencesForUserProfile(profileId);
     }
 
     @GetMapping("/recommendations/{preferenceId}")

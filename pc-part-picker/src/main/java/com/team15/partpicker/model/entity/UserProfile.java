@@ -1,5 +1,7 @@
 package com.team15.partpicker.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,6 +28,7 @@ public class UserProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @NotBlank
     @Column(nullable = false)
     private String password;
@@ -42,4 +45,19 @@ public class UserProfile {
     @NotBlank
     @Column(nullable = false)
     private String lastName;
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    @Column(name = "isAdmin", nullable = false)
+    private boolean admin;
+
+    @JsonProperty("isAdmin")
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    @JsonProperty("isAdmin")
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
 }

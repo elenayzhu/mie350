@@ -8,4 +8,6 @@ import java.util.List;
 public interface BuildRepository extends JpaRepository<Build, Long> {
 
     List<Build> findByUserPreferenceIdOrderByCreatedAtDesc(Long preferenceId);
+
+    List<Build> findByUserProfile_IdOrderByCreatedAtDesc(Long userProfileId);
 }

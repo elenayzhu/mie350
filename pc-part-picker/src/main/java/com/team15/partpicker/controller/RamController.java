@@ -3,13 +3,17 @@ package com.team15.partpicker.controller;
 import com.team15.partpicker.exception.RamNotFoundException;
 import com.team15.partpicker.model.entity.Ram;
 import com.team15.partpicker.model.repository.RamRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -28,6 +32,7 @@ public class RamController {
 
     @GetMapping
     public List<Ram> getRams(
+            @RequestParam(required = false) String query,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String ddrType,
             @RequestParam(required = false) Integer minSpeed,
@@ -35,14 +40,7 @@ public class RamController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice
     ) {
-        return ramRepository.findAll().stream()
-                .filter(ram -> brand == null || ram.getBrand().equalsIgnoreCase(brand))
-                .filter(ram -> ddrType == null || ram.getDdrType().equalsIgnoreCase(ddrType))
-                .filter(ram -> minSpeed == null || ram.getSpeedRatio() >= minSpeed)
-                .filter(ram -> minCapacity == null || ram.getCapacityGb() >= minCapacity)
-                .filter(ram -> minPrice == null || ram.getPrice().compareTo(minPrice) >= 0)
-                .filter(ram -> maxPrice == null || ram.getPrice().compareTo(maxPrice) <= 0)
-                .toList();
+        return ramRepository.search(query, brand, ddrType, minSpeed, minCapacity, minPrice, maxPrice);
     }
 
     @GetMapping("/{ramId}")
@@ -52,7 +50,27 @@ public class RamController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Ram createRam(@Valid @RequestBody @NonNull Ram ram) {
+        ram.setId(null);
         return ramRepository.save(ram);
+    }
+
+    @PutMapping("/{ramId}")
+    public Ram updateRam(@PathVariable @NonNull Long ramId, @Valid @RequestBody @NonNull Ram ram) {
+        if (!ramRepository.existsById(ramId)) {
+            throw new RamNotFoundException(ramId);
+        }
+        ram.setId(ramId);
+        return ramRepository.save(ram);
+    }
+
+    @DeleteMapping("/{ramId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteRam(@PathVariable @NonNull Long ramId) {
+        if (!ramRepository.existsById(ramId)) {
+            throw new RamNotFoundException(ramId);
+        }
+        ramRepository.deleteById(ramId);
     }
 }

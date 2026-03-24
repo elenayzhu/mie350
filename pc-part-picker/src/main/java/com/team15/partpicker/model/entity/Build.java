@@ -33,12 +33,12 @@ public class Build {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "preferenceId", nullable = false)
     @JsonIgnore
     private UserPreference userPreference;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userProfileId")
     @JsonIgnore
     private UserProfile userProfile;

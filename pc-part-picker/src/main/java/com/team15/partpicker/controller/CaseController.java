@@ -3,13 +3,17 @@ package com.team15.partpicker.controller;
 import com.team15.partpicker.exception.CaseNotFoundException;
 import com.team15.partpicker.model.entity.Case;
 import com.team15.partpicker.model.repository.CaseRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -28,19 +32,14 @@ public class CaseController {
 
     @GetMapping
     public List<Case> getCases(
+            @RequestParam(required = false) String query,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String formFactor,
             @RequestParam(required = false) Integer minMaxGpuLengthMm,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice
     ) {
-        return caseRepository.findAll().stream()
-                .filter(caseItem -> brand == null || caseItem.getBrand().equalsIgnoreCase(brand))
-                .filter(caseItem -> formFactor == null || caseItem.getFormFactor().equalsIgnoreCase(formFactor))
-                .filter(caseItem -> minMaxGpuLengthMm == null || caseItem.getMaxGpuLengthMm() >= minMaxGpuLengthMm)
-                .filter(caseItem -> minPrice == null || caseItem.getPrice().compareTo(minPrice) >= 0)
-                .filter(caseItem -> maxPrice == null || caseItem.getPrice().compareTo(maxPrice) <= 0)
-                .toList();
+        return caseRepository.search(query, brand, formFactor, minMaxGpuLengthMm, minPrice, maxPrice);
     }
 
     @GetMapping("/{caseId}")
@@ -50,7 +49,27 @@ public class CaseController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Case createCase(@Valid @RequestBody @NonNull Case caseEntity) {
+        caseEntity.setId(null);
         return caseRepository.save(caseEntity);
+    }
+
+    @PutMapping("/{caseId}")
+    public Case updateCase(@PathVariable @NonNull Long caseId, @Valid @RequestBody @NonNull Case caseEntity) {
+        if (!caseRepository.existsById(caseId)) {
+            throw new CaseNotFoundException(caseId);
+        }
+        caseEntity.setId(caseId);
+        return caseRepository.save(caseEntity);
+    }
+
+    @DeleteMapping("/{caseId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCase(@PathVariable @NonNull Long caseId) {
+        if (!caseRepository.existsById(caseId)) {
+            throw new CaseNotFoundException(caseId);
+        }
+        caseRepository.deleteById(caseId);
     }
 }

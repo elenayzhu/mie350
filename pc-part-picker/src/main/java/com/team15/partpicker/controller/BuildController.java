@@ -33,6 +33,11 @@ public class BuildController {
         return recommendationService.getAllBuilds();
     }
 
+    @GetMapping("/profiles/{profileId}/builds")
+    public List<Build> getBuildsForUserProfile(@PathVariable @NonNull Long profileId) {
+        return recommendationService.getBuildsForUserProfile(profileId);
+    }
+
     @GetMapping("/builds/{buildId}")
     public Build getBuild(@PathVariable @NonNull Long buildId) {
         return recommendationService.getBuild(buildId);
@@ -45,6 +50,16 @@ public class BuildController {
             @Valid @RequestBody @NonNull CreateBuildRequest request
     ) {
         return recommendationService.createBuild(preferenceId, request.getBuildTitle());
+    }
+
+    @PostMapping("/profiles/{profileId}/preferences/{preferenceId}/builds")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Build createBuildForUserProfile(
+            @PathVariable @NonNull Long profileId,
+            @PathVariable @NonNull Long preferenceId,
+            @Valid @RequestBody @NonNull CreateBuildRequest request
+    ) {
+        return recommendationService.createBuildForUserProfile(profileId, preferenceId, request.getBuildTitle());
     }
 
     @GetMapping("/preferences/{preferenceId}/builds")

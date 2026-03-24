@@ -3,13 +3,17 @@ package com.team15.partpicker.controller;
 import com.team15.partpicker.exception.PsuNotFoundException;
 import com.team15.partpicker.model.entity.Psu;
 import com.team15.partpicker.model.repository.PsuRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -28,6 +32,7 @@ public class PsuController {
 
     @GetMapping
     public List<Psu> getPsus(
+            @RequestParam(required = false) String query,
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) Integer minWattage,
             @RequestParam(required = false) String efficiencyRating,
@@ -35,14 +40,7 @@ public class PsuController {
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice
     ) {
-        return psuRepository.findAll().stream()
-                .filter(psu -> brand == null || psu.getBrand().equalsIgnoreCase(brand))
-                .filter(psu -> minWattage == null || psu.getWattage() >= minWattage)
-                .filter(psu -> efficiencyRating == null || psu.getEfficiencyRating().equalsIgnoreCase(efficiencyRating))
-                .filter(psu -> modularType == null || psu.getModularType().equalsIgnoreCase(modularType))
-                .filter(psu -> minPrice == null || psu.getPrice().compareTo(minPrice) >= 0)
-                .filter(psu -> maxPrice == null || psu.getPrice().compareTo(maxPrice) <= 0)
-                .toList();
+        return psuRepository.search(query, brand, minWattage, efficiencyRating, modularType, minPrice, maxPrice);
     }
 
     @GetMapping("/{psuId}")
@@ -52,7 +50,27 @@ public class PsuController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Psu createPsu(@Valid @RequestBody @NonNull Psu psu) {
+        psu.setId(null);
         return psuRepository.save(psu);
+    }
+
+    @PutMapping("/{psuId}")
+    public Psu updatePsu(@PathVariable @NonNull Long psuId, @Valid @RequestBody @NonNull Psu psu) {
+        if (!psuRepository.existsById(psuId)) {
+            throw new PsuNotFoundException(psuId);
+        }
+        psu.setId(psuId);
+        return psuRepository.save(psu);
+    }
+
+    @DeleteMapping("/{psuId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletePsu(@PathVariable @NonNull Long psuId) {
+        if (!psuRepository.existsById(psuId)) {
+            throw new PsuNotFoundException(psuId);
+        }
+        psuRepository.deleteById(psuId);
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
@@ -59,6 +60,9 @@ class UserProfileTests {
             assertEquals(email, receivedJson.get("email").textValue());
             assertEquals("Integration", receivedJson.get("firstName").textValue());
             assertEquals("Tester", receivedJson.get("lastName").textValue());
+            assertTrue(receivedJson.has("isAdmin"));
+            assertFalse(receivedJson.get("isAdmin").booleanValue());
+            assertFalse(receivedJson.has("password"));
             assertTrue(userProfileRepository.findByEmailIgnoreCase(email).isPresent());
         } finally {
             if (profileId != null) {
@@ -98,6 +102,9 @@ class UserProfileTests {
             assertEquals(email, receivedJson.get("email").textValue());
             assertEquals("Login", receivedJson.get("firstName").textValue());
             assertEquals("Tester", receivedJson.get("lastName").textValue());
+            assertTrue(receivedJson.has("isAdmin"));
+            assertFalse(receivedJson.get("isAdmin").booleanValue());
+            assertFalse(receivedJson.has("password"));
         } finally {
             userProfileRepository.deleteById(savedUserProfile.getId());
         }
