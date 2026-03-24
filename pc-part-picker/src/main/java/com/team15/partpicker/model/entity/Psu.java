@@ -1,16 +1,16 @@
 package com.team15.partpicker.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
-import org.springframework.lang.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.math.BigDecimal;
+
+import org.springframework.lang.Nullable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "psus")
@@ -20,13 +20,13 @@ import java.math.BigDecimal;
 public class Psu extends Part {
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer wattage; // e.g., 650, 750, 850
 
     @Nullable
     private String efficiencyRating; // e.g., 80+ Bronze, 80+ Gold
 
-    @NotBlank
+    @Nullable
     private String modularType; // Fully Modular, Semi-Modular, Non-Modular
 
     @Nullable

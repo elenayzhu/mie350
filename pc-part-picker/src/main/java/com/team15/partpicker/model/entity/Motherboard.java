@@ -1,14 +1,15 @@
 package com.team15.partpicker.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
-import org.springframework.lang.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-import java.math.BigDecimal;
+
+import org.springframework.lang.Nullable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "motherboards")
@@ -17,13 +18,13 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class Motherboard extends Part {
 
-    @NotBlank
+    @Nullable
     private String ddrType;
 
-    @NotBlank
+    @Nullable
     private String socket;
 
-    @NotBlank
+    @Nullable
     private String formFactor;
 
     @Nullable

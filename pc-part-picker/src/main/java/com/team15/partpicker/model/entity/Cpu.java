@@ -1,15 +1,17 @@
 package com.team15.partpicker.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.math.BigDecimal;
+
+import org.springframework.lang.Nullable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "cpus")
@@ -22,11 +24,11 @@ public class Cpu extends Part {
     private String socket;
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer cores;
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer tdp;
 
     public Cpu(Long id, String model, String brand, String socket, Integer cores, Integer tdp, BigDecimal price) {

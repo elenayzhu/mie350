@@ -1,15 +1,17 @@
 package com.team15.partpicker.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.math.BigDecimal;
+
+import org.springframework.lang.Nullable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "storages")
@@ -22,7 +24,7 @@ public class Storage extends Part {
     private String type; // NVMe SSD, SATA SSD, HDD
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer capacityGb; // 500, 1000, 2000
 
     public Storage(Long id, String model, String brand, String type, Integer capacityGb, BigDecimal price) {

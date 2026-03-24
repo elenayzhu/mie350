@@ -1,16 +1,16 @@
 package com.team15.partpicker.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
-import org.springframework.lang.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.math.BigDecimal;
+
+import org.springframework.lang.Nullable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "coolers")
@@ -26,7 +26,7 @@ public class Cooler extends Part {
     @Nullable
     private Integer maxTdp; // cooler TDP capacity (watts)
 
-    @NotBlank
+    @Nullable
     private String type; // Air, AIO 240mm, AIO 360mm
 
     @Nullable

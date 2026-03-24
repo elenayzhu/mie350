@@ -1,16 +1,16 @@
 package com.team15.partpicker.model.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
 
-import org.springframework.lang.Nullable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
-import java.math.BigDecimal;
+
+import org.springframework.lang.Nullable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "rams")
@@ -19,15 +19,15 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class Ram extends Part {
 
-    @NotBlank
+    @Nullable
     private String ddrType; // DDR4, DDR5
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer speedRatio; // changed from speedMhz to speedRatio (speedMhz / CAS Latency)
 
     @Positive
-    @NotNull
+    @Nullable
     private Integer capacityGb; // 8, 16, 32
 
     @Nullable
