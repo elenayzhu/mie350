@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.CoolerNotFoundException;
 import com.team15.partpicker.model.entity.Cooler;
 import com.team15.partpicker.model.repository.CoolerRepository;
@@ -57,12 +58,18 @@ public class CoolerController {
     }
 
     @PutMapping("/{coolerId}")
-    public Cooler updateCooler(@PathVariable @NonNull Long coolerId, @Valid @RequestBody @NonNull Cooler cooler) {
-        if (!coolerRepository.existsById(coolerId)) {
-            throw new CoolerNotFoundException(coolerId);
-        }
-        cooler.setId(coolerId);
-        return coolerRepository.save(cooler);
+    public Cooler updateCooler(
+            @PathVariable @NonNull Long coolerId,
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
+    ) {
+        Cooler existingCooler = coolerRepository.findById(coolerId)
+                .orElseThrow(() -> new CoolerNotFoundException(coolerId));
+
+        existingCooler.setModel(updateRequest.getModel());
+        existingCooler.setBrand(updateRequest.getBrand());
+        existingCooler.setPrice(updateRequest.getPrice());
+
+        return coolerRepository.save(existingCooler);
     }
 
     @DeleteMapping("/{coolerId}")

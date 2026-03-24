@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.StorageNotFoundException;
 import com.team15.partpicker.model.entity.Storage;
 import com.team15.partpicker.model.repository.StorageRepository;
@@ -56,12 +57,18 @@ public class StorageController {
     }
 
     @PutMapping("/{storageId}")
-    public Storage updateStorage(@PathVariable @NonNull Long storageId, @Valid @RequestBody @NonNull Storage storage) {
-        if (!storageRepository.existsById(storageId)) {
-            throw new StorageNotFoundException(storageId);
-        }
-        storage.setId(storageId);
-        return storageRepository.save(storage);
+    public Storage updateStorage(
+            @PathVariable @NonNull Long storageId,
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
+    ) {
+        Storage existingStorage = storageRepository.findById(storageId)
+                .orElseThrow(() -> new StorageNotFoundException(storageId));
+
+        existingStorage.setModel(updateRequest.getModel());
+        existingStorage.setBrand(updateRequest.getBrand());
+        existingStorage.setPrice(updateRequest.getPrice());
+
+        return storageRepository.save(existingStorage);
     }
 
     @DeleteMapping("/{storageId}")

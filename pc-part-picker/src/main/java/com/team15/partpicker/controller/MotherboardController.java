@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.MotherboardNotFoundException;
 import com.team15.partpicker.model.entity.Motherboard;
 import com.team15.partpicker.model.repository.MotherboardRepository;
@@ -58,13 +59,16 @@ public class MotherboardController {
     @PutMapping("/{motherboardId}")
     public Motherboard updateMotherboard(
             @PathVariable @NonNull Long motherboardId,
-            @Valid @RequestBody @NonNull Motherboard motherboard
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
     ) {
-        if (!motherboardRepository.existsById(motherboardId)) {
-            throw new MotherboardNotFoundException(motherboardId);
-        }
-        motherboard.setId(motherboardId);
-        return motherboardRepository.save(motherboard);
+        Motherboard existingMotherboard = motherboardRepository.findById(motherboardId)
+                .orElseThrow(() -> new MotherboardNotFoundException(motherboardId));
+
+        existingMotherboard.setModel(updateRequest.getModel());
+        existingMotherboard.setBrand(updateRequest.getBrand());
+        existingMotherboard.setPrice(updateRequest.getPrice());
+
+        return motherboardRepository.save(existingMotherboard);
     }
 
     @DeleteMapping("/{motherboardId}")

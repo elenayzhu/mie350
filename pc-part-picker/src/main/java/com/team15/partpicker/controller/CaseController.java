@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.CaseNotFoundException;
 import com.team15.partpicker.model.entity.Case;
 import com.team15.partpicker.model.repository.CaseRepository;
@@ -56,12 +57,18 @@ public class CaseController {
     }
 
     @PutMapping("/{caseId}")
-    public Case updateCase(@PathVariable @NonNull Long caseId, @Valid @RequestBody @NonNull Case caseEntity) {
-        if (!caseRepository.existsById(caseId)) {
-            throw new CaseNotFoundException(caseId);
-        }
-        caseEntity.setId(caseId);
-        return caseRepository.save(caseEntity);
+    public Case updateCase(
+            @PathVariable @NonNull Long caseId,
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
+    ) {
+        Case existingCase = caseRepository.findById(caseId)
+                .orElseThrow(() -> new CaseNotFoundException(caseId));
+
+        existingCase.setModel(updateRequest.getModel());
+        existingCase.setBrand(updateRequest.getBrand());
+        existingCase.setPrice(updateRequest.getPrice());
+
+        return caseRepository.save(existingCase);
     }
 
     @DeleteMapping("/{caseId}")

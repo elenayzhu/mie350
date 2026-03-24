@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.CpuNotFoundException;
 import com.team15.partpicker.model.entity.Cpu;
 import com.team15.partpicker.model.repository.CpuRepository;
@@ -56,12 +57,18 @@ public class CpuController {
     }
 
     @PutMapping("/{cpuId}")
-    public Cpu updateCpu(@PathVariable @NonNull Long cpuId, @Valid @RequestBody @NonNull Cpu cpu) {
-        if (!cpuRepository.existsById(cpuId)) {
-            throw new CpuNotFoundException(cpuId);
-        }
-        cpu.setId(cpuId);
-        return cpuRepository.save(cpu);
+    public Cpu updateCpu(
+            @PathVariable @NonNull Long cpuId,
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
+    ) {
+        Cpu existingCpu = cpuRepository.findById(cpuId)
+                .orElseThrow(() -> new CpuNotFoundException(cpuId));
+
+        existingCpu.setModel(updateRequest.getModel());
+        existingCpu.setBrand(updateRequest.getBrand());
+        existingCpu.setPrice(updateRequest.getPrice());
+
+        return cpuRepository.save(existingCpu);
     }
 
     @DeleteMapping("/{cpuId}")

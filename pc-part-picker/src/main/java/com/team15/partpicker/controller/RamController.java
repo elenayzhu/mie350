@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.RamNotFoundException;
 import com.team15.partpicker.model.entity.Ram;
 import com.team15.partpicker.model.repository.RamRepository;
@@ -57,12 +58,18 @@ public class RamController {
     }
 
     @PutMapping("/{ramId}")
-    public Ram updateRam(@PathVariable @NonNull Long ramId, @Valid @RequestBody @NonNull Ram ram) {
-        if (!ramRepository.existsById(ramId)) {
-            throw new RamNotFoundException(ramId);
-        }
-        ram.setId(ramId);
-        return ramRepository.save(ram);
+    public Ram updateRam(
+            @PathVariable @NonNull Long ramId,
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
+    ) {
+        Ram existingRam = ramRepository.findById(ramId)
+                .orElseThrow(() -> new RamNotFoundException(ramId));
+
+        existingRam.setModel(updateRequest.getModel());
+        existingRam.setBrand(updateRequest.getBrand());
+        existingRam.setPrice(updateRequest.getPrice());
+
+        return ramRepository.save(existingRam);
     }
 
     @DeleteMapping("/{ramId}")

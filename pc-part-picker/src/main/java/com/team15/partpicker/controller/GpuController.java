@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.GpuNotFoundException;
 import com.team15.partpicker.model.entity.Gpu;
 import com.team15.partpicker.model.repository.GpuRepository;
@@ -55,12 +56,18 @@ public class GpuController {
     }
 
     @PutMapping("/{gpuId}")
-    public Gpu updateGpu(@PathVariable @NonNull Long gpuId, @Valid @RequestBody @NonNull Gpu gpu) {
-        if (!gpuRepository.existsById(gpuId)) {
-            throw new GpuNotFoundException(gpuId);
-        }
-        gpu.setId(gpuId);
-        return gpuRepository.save(gpu);
+    public Gpu updateGpu(
+            @PathVariable @NonNull Long gpuId,
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
+    ) {
+        Gpu existingGpu = gpuRepository.findById(gpuId)
+                .orElseThrow(() -> new GpuNotFoundException(gpuId));
+
+        existingGpu.setModel(updateRequest.getModel());
+        existingGpu.setBrand(updateRequest.getBrand());
+        existingGpu.setPrice(updateRequest.getPrice());
+
+        return gpuRepository.save(existingGpu);
     }
 
     @DeleteMapping("/{gpuId}")

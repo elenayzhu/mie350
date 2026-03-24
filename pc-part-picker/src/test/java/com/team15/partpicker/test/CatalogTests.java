@@ -53,10 +53,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration CPU Beta " + token,
-                "brand", "IntegrationBrandCpu",
-                "socket", "CPU-SOCKET-B",
-                "cores", 12,
-                "tdp", 125,
+                "brand", "UpdatedBrandCpu",
                 "price", new BigDecimal("249.99")
         );
 
@@ -70,8 +67,9 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
-                        "socket", "CPU-SOCKET-B",
-                        "minCores", "12",
+                        "brand", "UpdatedBrandCpu",
+                        "socket", "CPU-SOCKET-A",
+                        "minCores", "8",
                         "maxPrice", "250"
                 )
         );
@@ -94,12 +92,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration GPU Beta " + token,
-                "brand", "IntegrationBrandGpu",
-                "manufacturer", "AMD",
-                "lengthMm", 320,
-                "vramGb", 16,
-                "tdp", 250,
-                "color", "White",
+                "brand", "UpdatedBrandGpu",
                 "price", new BigDecimal("549.99")
         );
 
@@ -113,7 +106,8 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
-                        "minVramGb", "16",
+                        "brand", "UpdatedBrandGpu",
+                        "minVramGb", "12",
                         "maxPrice", "550"
                 )
         );
@@ -136,12 +130,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration Motherboard Beta " + token,
-                "brand", "IntegrationBrandMotherboard",
-                "ddrType", "DDR5",
-                "socket", "MB-SOCKET-B",
-                "formFactor", "Micro-ATX",
-                "color", "White",
-                "memorySlots", 2,
+                "brand", "UpdatedBrandMotherboard",
                 "price", new BigDecimal("159.99")
         );
 
@@ -155,8 +144,9 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
-                        "socket", "MB-SOCKET-B",
-                        "formFactor", "Micro-ATX",
+                        "brand", "UpdatedBrandMotherboard",
+                        "socket", "MB-SOCKET-A",
+                        "formFactor", "ATX",
                         "maxPrice", "160"
                 )
         );
@@ -178,11 +168,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration RAM Beta " + token,
-                "brand", "IntegrationBrandRam",
-                "ddrType", "DDR5",
-                "speedRatio", 200,
-                "capacityGb", 64,
-                "color", "White",
+                "brand", "UpdatedBrandRam",
                 "price", new BigDecimal("179.99")
         );
 
@@ -196,9 +182,10 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
+                        "brand", "UpdatedBrandRam",
                         "ddrType", "DDR5",
-                        "minSpeed", "200",
-                        "minCapacity", "64",
+                        "minSpeed", "180",
+                        "minCapacity", "32",
                         "maxPrice", "180"
                 )
         );
@@ -218,9 +205,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration Storage Beta " + token,
-                "brand", "IntegrationBrandStorage",
-                "type", "SATA SSD",
-                "capacityGb", 2000,
+                "brand", "UpdatedBrandStorage",
                 "price", new BigDecimal("149.99")
         );
 
@@ -234,8 +219,9 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
-                        "type", "SATA SSD",
-                        "minCapacity", "2000",
+                        "brand", "UpdatedBrandStorage",
+                        "type", "NVMe SSD",
+                        "minCapacity", "1000",
                         "maxPrice", "150"
                 )
         );
@@ -257,11 +243,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration PSU Beta " + token,
-                "brand", "IntegrationBrandPsu",
-                "wattage", 850,
-                "efficiencyRating", "80+ Platinum",
-                "modularType", "Semi-Modular",
-                "color", "White",
+                "brand", "UpdatedBrandPsu",
                 "price", new BigDecimal("169.99")
         );
 
@@ -275,9 +257,10 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
-                        "minWattage", "850",
-                        "efficiencyRating", "80+ Platinum",
-                        "modularType", "Semi-Modular",
+                        "brand", "UpdatedBrandPsu",
+                        "minWattage", "750",
+                        "efficiencyRating", "80+ Gold",
+                        "modularType", "Fully Modular",
                         "maxPrice", "170"
                 )
         );
@@ -299,11 +282,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration Cooler Beta " + token,
-                "brand", "IntegrationBrandCooler",
-                "socket", "LGA1700",
-                "maxTdp", 280,
-                "type", "AIO 360mm",
-                "color", "White",
+                "brand", "UpdatedBrandCooler",
                 "price", new BigDecimal("149.99")
         );
 
@@ -317,9 +296,10 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
-                        "socket", "LGA1700",
-                        "type", "AIO 360mm",
-                        "minMaxTdp", "280",
+                        "brand", "UpdatedBrandCooler",
+                        "socket", "AM5",
+                        "type", "Air",
+                        "minMaxTdp", "220",
                         "maxPrice", "150"
                 )
         );
@@ -341,11 +321,7 @@ class CatalogTests {
 
         ObjectNode updateJson = json(
                 "model", "Integration Case Beta " + token,
-                "brand", "IntegrationBrandCase",
-                "formFactor", "Micro-ATX",
-                "maxGpuLengthMm", 400,
-                "type", "Full Tower",
-                "color", "White",
+                "brand", "UpdatedBrandCase",
                 "price", new BigDecimal("149.99")
         );
 
@@ -359,8 +335,9 @@ class CatalogTests {
                 ),
                 params(
                         "query", "Beta " + token,
-                        "formFactor", "Micro-ATX",
-                        "minMaxGpuLengthMm", "400",
+                        "brand", "UpdatedBrandCase",
+                        "formFactor", "ATX",
+                        "minMaxGpuLengthMm", "360",
                         "maxPrice", "150"
                 )
         );
@@ -405,6 +382,7 @@ class CatalogTests {
             ObjectNode updatedPartJson = objectMapper.readValue(updateResponse.getContentAsString(), ObjectNode.class);
             assertEquals(partId.longValue(), updatedPartJson.get("id").longValue());
             assertJsonContainsAll(updatedPartJson, updateJson);
+            assertJsonContainsAllExcept(updatedPartJson, createJson, "model", "brand", "price");
 
             MockHttpServletResponse getResponse = mockMvc.perform(get(endpoint + "/" + partId))
                     .andReturn()
@@ -414,6 +392,7 @@ class CatalogTests {
 
             ObjectNode fetchedPartJson = objectMapper.readValue(getResponse.getContentAsString(), ObjectNode.class);
             assertJsonContainsAll(fetchedPartJson, updateJson);
+            assertJsonContainsAllExcept(fetchedPartJson, createJson, "model", "brand", "price");
 
             ArrayNode updateSearchResults = performSearch(endpoint, updateSearchParams);
             assertTrue(containsId(updateSearchResults, partId));
@@ -474,6 +453,18 @@ class CatalogTests {
         });
     }
 
+    private void assertJsonContainsAllExcept(ObjectNode actualJson, ObjectNode expectedJson, String... excludedFields) {
+        expectedJson.fields().forEachRemaining(field -> {
+            if (isExcluded(field.getKey(), excludedFields)) {
+                return;
+            }
+
+            JsonNode actualValue = actualJson.get(field.getKey());
+            assertNotNull(actualValue, "Missing field: " + field.getKey());
+            assertJsonValueEquals(field.getKey(), field.getValue(), actualValue);
+        });
+    }
+
     private void assertJsonValueEquals(String fieldName, JsonNode expectedValue, JsonNode actualValue) {
         if (expectedValue.isNumber()) {
             assertEquals(0, expectedValue.decimalValue().compareTo(actualValue.decimalValue()), fieldName);
@@ -486,6 +477,15 @@ class CatalogTests {
         }
 
         assertEquals(expectedValue.textValue(), actualValue.textValue(), fieldName);
+    }
+
+    private boolean isExcluded(String fieldName, String... excludedFields) {
+        for (String excludedField : excludedFields) {
+            if (excludedField.equals(fieldName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ObjectNode json(Object... keyValuePairs) {

@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.team15.partpicker.controller.request.PartUpdateRequest;
 import com.team15.partpicker.exception.PsuNotFoundException;
 import com.team15.partpicker.model.entity.Psu;
 import com.team15.partpicker.model.repository.PsuRepository;
@@ -57,12 +58,18 @@ public class PsuController {
     }
 
     @PutMapping("/{psuId}")
-    public Psu updatePsu(@PathVariable @NonNull Long psuId, @Valid @RequestBody @NonNull Psu psu) {
-        if (!psuRepository.existsById(psuId)) {
-            throw new PsuNotFoundException(psuId);
-        }
-        psu.setId(psuId);
-        return psuRepository.save(psu);
+    public Psu updatePsu(
+            @PathVariable @NonNull Long psuId,
+            @Valid @RequestBody @NonNull PartUpdateRequest updateRequest
+    ) {
+        Psu existingPsu = psuRepository.findById(psuId)
+                .orElseThrow(() -> new PsuNotFoundException(psuId));
+
+        existingPsu.setModel(updateRequest.getModel());
+        existingPsu.setBrand(updateRequest.getBrand());
+        existingPsu.setPrice(updateRequest.getPrice());
+
+        return psuRepository.save(existingPsu);
     }
 
     @DeleteMapping("/{psuId}")
