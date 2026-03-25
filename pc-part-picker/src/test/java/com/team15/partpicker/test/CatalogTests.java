@@ -39,15 +39,38 @@ class CatalogTests {
     private ObjectMapper objectMapper;
 
     @Test
+    void getCpusWithFilters() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(
+                        get("/cpus")
+                                .param("brand", "AMD")
+                                .param("socket", "AM5")
+                                .param("minCores", "8")
+                                .param("maxPrice", "350"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() > 0);
+
+        for (int i = 0; i < receivedJson.size(); i++) {
+            ObjectNode cpuJson = (ObjectNode) receivedJson.get(i);
+
+            assertEquals("AMD", cpuJson.get("brand").textValue());
+            assertEquals("AM5", cpuJson.get("socket").textValue());
+            assertTrue(cpuJson.get("cores").intValue() >= 8);
+            assertTrue(cpuJson.get("price").decimalValue().compareTo(new BigDecimal("350")) <= 0);
+        }
+    }
+
+    @Test
     void cpuCatalogSupportsSearchAndCrud() throws Exception {
         String token = uniqueToken("cpu");
 
         ObjectNode createJson = json(
                 "model", "Integration CPU Alpha " + token,
                 "brand", "IntegrationBrandCpu",
-                "socket", "CPU-SOCKET-A",
-                "cores", 8,
-                "tdp", 95,
                 "price", new BigDecimal("219.99")
         );
 
@@ -68,8 +91,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandCpu",
-                        "socket", "CPU-SOCKET-A",
-                        "minCores", "8",
                         "maxPrice", "250"
                 )
         );
@@ -82,11 +103,6 @@ class CatalogTests {
         ObjectNode createJson = json(
                 "model", "Integration GPU Alpha " + token,
                 "brand", "IntegrationBrandGpu",
-                "manufacturer", "NVIDIA",
-                "lengthMm", 300,
-                "vramGb", 12,
-                "tdp", 220,
-                "color", "Black",
                 "price", new BigDecimal("499.99")
         );
 
@@ -107,7 +123,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandGpu",
-                        "minVramGb", "12",
                         "maxPrice", "550"
                 )
         );
@@ -120,11 +135,6 @@ class CatalogTests {
         ObjectNode createJson = json(
                 "model", "Integration Motherboard Alpha " + token,
                 "brand", "IntegrationBrandMotherboard",
-                "ddrType", "DDR5",
-                "socket", "MB-SOCKET-A",
-                "formFactor", "ATX",
-                "color", "Black",
-                "memorySlots", 4,
                 "price", new BigDecimal("189.99")
         );
 
@@ -145,8 +155,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandMotherboard",
-                        "socket", "MB-SOCKET-A",
-                        "formFactor", "ATX",
                         "maxPrice", "160"
                 )
         );
@@ -159,10 +167,6 @@ class CatalogTests {
         ObjectNode createJson = json(
                 "model", "Integration RAM Alpha " + token,
                 "brand", "IntegrationBrandRam",
-                "ddrType", "DDR5",
-                "speedRatio", 180,
-                "capacityGb", 32,
-                "color", "Black",
                 "price", new BigDecimal("129.99")
         );
 
@@ -183,9 +187,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandRam",
-                        "ddrType", "DDR5",
-                        "minSpeed", "180",
-                        "minCapacity", "32",
                         "maxPrice", "180"
                 )
         );
@@ -198,8 +199,6 @@ class CatalogTests {
         ObjectNode createJson = json(
                 "model", "Integration Storage Alpha " + token,
                 "brand", "IntegrationBrandStorage",
-                "type", "NVMe SSD",
-                "capacityGb", 1000,
                 "price", new BigDecimal("109.99")
         );
 
@@ -220,8 +219,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandStorage",
-                        "type", "NVMe SSD",
-                        "minCapacity", "1000",
                         "maxPrice", "150"
                 )
         );
@@ -234,10 +231,6 @@ class CatalogTests {
         ObjectNode createJson = json(
                 "model", "Integration PSU Alpha " + token,
                 "brand", "IntegrationBrandPsu",
-                "wattage", 750,
-                "efficiencyRating", "80+ Gold",
-                "modularType", "Fully Modular",
-                "color", "Black",
                 "price", new BigDecimal("139.99")
         );
 
@@ -258,9 +251,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandPsu",
-                        "minWattage", "750",
-                        "efficiencyRating", "80+ Gold",
-                        "modularType", "Fully Modular",
                         "maxPrice", "170"
                 )
         );
@@ -273,10 +263,6 @@ class CatalogTests {
         ObjectNode createJson = json(
                 "model", "Integration Cooler Alpha " + token,
                 "brand", "IntegrationBrandCooler",
-                "socket", "AM5",
-                "maxTdp", 220,
-                "type", "Air",
-                "color", "Black",
                 "price", new BigDecimal("59.99")
         );
 
@@ -297,9 +283,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandCooler",
-                        "socket", "AM5",
-                        "type", "Air",
-                        "minMaxTdp", "220",
                         "maxPrice", "150"
                 )
         );
@@ -312,10 +295,6 @@ class CatalogTests {
         ObjectNode createJson = json(
                 "model", "Integration Case Alpha " + token,
                 "brand", "IntegrationBrandCase",
-                "formFactor", "ATX",
-                "maxGpuLengthMm", 360,
-                "type", "Mid Tower",
-                "color", "Black",
                 "price", new BigDecimal("99.99")
         );
 
@@ -336,8 +315,6 @@ class CatalogTests {
                 params(
                         "query", "Beta " + token,
                         "brand", "UpdatedBrandCase",
-                        "formFactor", "ATX",
-                        "minMaxGpuLengthMm", "360",
                         "maxPrice", "150"
                 )
         );

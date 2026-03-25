@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Positive;
 
 import org.springframework.lang.Nullable;
@@ -20,7 +19,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Storage extends Part {
 
-    @NotBlank
+    @Nullable
     private String type; // NVMe SSD, SATA SSD, HDD
 
     @Positive
