@@ -21,10 +21,8 @@ public class Motherboard extends Part {
     @Nullable
     private String ddrType;
 
-    @Nullable
     private String socket;
 
-    @Nullable
     private String formFactor;
 
     @Nullable

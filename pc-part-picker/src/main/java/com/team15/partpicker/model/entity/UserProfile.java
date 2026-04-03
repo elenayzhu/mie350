@@ -1,5 +1,6 @@
 package com.team15.partpicker.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -56,7 +57,13 @@ public class UserProfile {
         return admin;
     }
 
+    @JsonProperty("admin")
+    public boolean getAdmin() {
+        return admin;
+    }
+
     @JsonProperty("isAdmin")
+    @JsonAlias("admin")
     public void setAdmin(boolean admin) {
         this.admin = admin;
     }

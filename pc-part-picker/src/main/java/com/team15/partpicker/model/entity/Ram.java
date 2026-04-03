@@ -27,7 +27,6 @@ public class Ram extends Part {
     private Integer speedRatio; // changed from speedMhz to speedRatio (speedMhz / CAS Latency)
 
     @Positive
-    @Nullable
     private Integer capacityGb; // 8, 16, 32
 
     @Nullable

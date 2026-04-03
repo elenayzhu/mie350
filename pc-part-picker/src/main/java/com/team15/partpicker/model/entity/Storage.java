@@ -23,7 +23,6 @@ public class Storage extends Part {
     private String type; // NVMe SSD, SATA SSD, HDD
 
     @Positive
-    @Nullable
     private Integer capacityGb; // 500, 1000, 2000
 
     public Storage(Long id, String model, String brand, String type, Integer capacityGb, BigDecimal price) {

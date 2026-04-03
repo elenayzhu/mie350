@@ -19,11 +19,9 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Cpu extends Part {
 
-    @Nullable
     private String socket;
 
     @Positive
-    @Nullable
     private Integer cores;
 
     @Positive

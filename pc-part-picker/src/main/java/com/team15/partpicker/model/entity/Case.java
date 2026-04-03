@@ -19,14 +19,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Case extends Part {
 
-    @Nullable
     private String formFactor; // e.g., ATX, Micro-ATX, Mini-ITX
 
     @Positive
-    @Nullable
     private Integer maxGpuLengthMm; // Maximum GPU length supported in mm
 
-    @Nullable
     private String type;
 
     @Nullable

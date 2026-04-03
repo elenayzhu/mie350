@@ -27,7 +27,6 @@ public class Gpu extends Part {
     private Integer lengthMm;
 
     @Positive
-    @Nullable
     private Integer vramGb;
 
     @Positive

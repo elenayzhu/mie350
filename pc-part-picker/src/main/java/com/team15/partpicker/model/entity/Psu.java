@@ -20,7 +20,6 @@ import lombok.Setter;
 public class Psu extends Part {
 
     @Positive
-    @Nullable
     private Integer wattage; // e.g., 650, 750, 850
 
     @Nullable
