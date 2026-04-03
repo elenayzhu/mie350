@@ -603,7 +603,7 @@ public class RecommendationService {
         if (preference.getPreferredCoolerBrand() != null && !preference.getPreferredCoolerBrand().isBlank()) {
             candidates = coolerRepository.findByBrandIgnoreCaseAndPriceLessThanEqual(preference.getPreferredCoolerBrand(), budget);
             candidates = candidates.stream()
-                .filter(cooler -> socket == null || (cooler.getSocket() != null && cooler.getSocket().equalsIgnoreCase(socket)))
+                .filter(cooler -> isCoolerSocketCompatible(cooler, socket))
                 .toList();
             if (!candidates.isEmpty()) {
                 return cheapestCooler(candidates);
@@ -611,7 +611,7 @@ public class RecommendationService {
         }
         candidates = coolerRepository.findByPriceLessThanEqual(budget);
         candidates = candidates.stream()
-            .filter(cooler -> socket == null || (cooler.getSocket() != null && cooler.getSocket().equalsIgnoreCase(socket)))
+            .filter(cooler -> isCoolerSocketCompatible(cooler, socket))
             .toList();
         return cheapestCooler(candidates);
     }
@@ -663,6 +663,10 @@ public class RecommendationService {
                 .orElse(null);
     }
 
+    private boolean isCoolerSocketCompatible(Cooler cooler, String socket) {
+        return socket == null || !hasText(cooler.getSocket()) || cooler.getSocket().equalsIgnoreCase(socket);
+    }
+
     //PSU Wattage Estimation Start
     private int estimateCpuWattage(Cpu cpu) { //cpu no actual data so use estimation with core
         if (cpu == null) {
@@ -707,18 +711,18 @@ public class RecommendationService {
         switch (category) {
             case GAMING:
                 return new BudgetAllocation(
-                        new BigDecimal("0.25"), // CPU
-                        new BigDecimal("0.35"), // GPU
+                        new BigDecimal("0.24"), // CPU
+                        new BigDecimal("0.32"), // GPU
                         new BigDecimal("0.08"), // RAM
-                        new BigDecimal("0.12"), // Motherboard
+                        new BigDecimal("0.11"), // Motherboard
                         new BigDecimal("0.08"), // Storage
                         new BigDecimal("0.06"), // PSU
                         new BigDecimal("0.06")  // Cooler
                 );
             case AI_ML:
                 return new BudgetAllocation(
-                        new BigDecimal("0.28"), // CPU
-                        new BigDecimal("0.38"), // GPU
+                        new BigDecimal("0.27"), // CPU
+                        new BigDecimal("0.34"), // GPU
                         new BigDecimal("0.10"), // RAM
                         new BigDecimal("0.10"), // Motherboard
                         new BigDecimal("0.06"), // Storage
@@ -727,20 +731,20 @@ public class RecommendationService {
                 );
             case WORKSTATION:
                 return new BudgetAllocation(
-                        new BigDecimal("0.32"), // CPU
-                        new BigDecimal("0.28"), // GPU
+                        new BigDecimal("0.30"), // CPU
+                        new BigDecimal("0.25"), // GPU
                         new BigDecimal("0.12"), // RAM
-                        new BigDecimal("0.12"), // Motherboard
+                        new BigDecimal("0.11"), // Motherboard
                         new BigDecimal("0.08"), // Storage
                         new BigDecimal("0.04"), // PSU
-                        new BigDecimal("0.04")  // Cooler
+                        new BigDecimal("0.05")  // Cooler
                 );
             default:
                 return new BudgetAllocation(
-                        new BigDecimal("0.25"), // CPU
-                        new BigDecimal("0.35"), // GPU
+                        new BigDecimal("0.24"), // CPU
+                        new BigDecimal("0.32"), // GPU
                         new BigDecimal("0.08"), // RAM
-                        new BigDecimal("0.12"), // Motherboard
+                        new BigDecimal("0.11"), // Motherboard
                         new BigDecimal("0.08"), // Storage
                         new BigDecimal("0.06"), // PSU
                         new BigDecimal("0.06")  // Cooler

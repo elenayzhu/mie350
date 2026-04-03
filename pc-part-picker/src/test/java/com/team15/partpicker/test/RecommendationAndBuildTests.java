@@ -62,6 +62,9 @@ class RecommendationAndBuildTests {
             assertTrue(receivedJson.hasNonNull("cpu"));
             assertTrue(receivedJson.hasNonNull("gpu"));
             assertTrue(receivedJson.hasNonNull("motherboard"));
+            assertTrue(receivedJson.hasNonNull("cooler"));
+            assertTrue(receivedJson.hasNonNull("computerCase"));
+            assertTrue(receivedJson.hasNonNull("case"));
 
             BigDecimal totalPrice = receivedJson.get("totalPrice").decimalValue();
             assertTrue(totalPrice.compareTo(BigDecimal.ZERO) > 0);
@@ -102,6 +105,9 @@ class RecommendationAndBuildTests {
             assertEquals(1L, receivedJson.get("preferenceId").longValue());
             assertTrue(receivedJson.hasNonNull("createdAt"));
             assertTrue(receivedJson.hasNonNull("totalPrice"));
+            assertTrue(receivedJson.hasNonNull("cooler"));
+            assertTrue(receivedJson.hasNonNull("computerCase"));
+            assertTrue(receivedJson.hasNonNull("case"));
 
             Build savedBuild = buildRepository.findById(buildId).orElseThrow();
             assertEquals(buildTitle, savedBuild.getBuildTitle());
@@ -140,6 +146,47 @@ class RecommendationAndBuildTests {
 
         assertEquals(204, deleteResponse.getStatus());
         assertTrue(buildRepository.findById(buildId).isEmpty());
+    }
+
+    @Test
+    void createPreferencePersistsCaseAndCoolerBrandPreferences() throws Exception {
+        String email = "brand-preferences@test.com";
+        deleteExistingProfile(email);
+
+        UserProfile profile = saveUserProfile(email, "Brand", "Preferences");
+        Long preferenceId = null;
+
+        try {
+            ObjectNode preferenceJson = objectMapper.createObjectNode();
+            preferenceJson.put("buildCategory", "GAMING");
+            preferenceJson.put("maxBudget", 1500);
+            preferenceJson.put("preferredCaseBrand", "Corsair");
+            preferenceJson.put("preferredCoolerBrand", "Thermalright");
+
+            MockHttpServletResponse response = mockMvc.perform(
+                            post("/profiles/" + profile.getId() + "/preferences")
+                                    .contentType("application/json")
+                                    .content(preferenceJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, response.getStatus());
+
+            ObjectNode receivedJson = objectMapper.readValue(response.getContentAsString(), ObjectNode.class);
+            preferenceId = receivedJson.get("id").longValue();
+
+            assertEquals("Corsair", receivedJson.get("preferredCaseBrand").textValue());
+            assertEquals("Thermalright", receivedJson.get("preferredCoolerBrand").textValue());
+
+            var savedPreference = userPreferenceRepository.findById(preferenceId).orElseThrow();
+            assertEquals("Corsair", savedPreference.getPreferredCaseBrand());
+            assertEquals("Thermalright", savedPreference.getPreferredCoolerBrand());
+        } finally {
+            if (preferenceId != null) {
+                userPreferenceRepository.deleteById(preferenceId);
+            }
+            userProfileRepository.deleteById(profile.getId());
+        }
     }
 
     @Test

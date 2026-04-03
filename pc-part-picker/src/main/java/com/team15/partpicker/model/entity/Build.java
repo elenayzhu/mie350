@@ -1,5 +1,6 @@
 package com.team15.partpicker.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -100,5 +101,10 @@ public class Build {
 
     public Long getUserProfileId() {
         return userProfile == null ? null : userProfile.getId();
+    }
+
+    @JsonProperty("case")
+    public Case getCasePart() {
+        return computerCase;
     }
 }

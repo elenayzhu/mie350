@@ -1,5 +1,6 @@
 package com.team15.partpicker.controller;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.team15.partpicker.model.entity.Case;
 import com.team15.partpicker.model.entity.Cooler;
 import com.team15.partpicker.model.entity.Cpu;
@@ -133,6 +134,11 @@ public class RecommendationResponse {
 
     public void setComputerCase(Case computerCase) {
         this.computerCase = computerCase;
+    }
+
+    @JsonProperty("case")
+    public Case getCasePart() {
+        return computerCase;
     }
 
     public BigDecimal getTotalPrice() {

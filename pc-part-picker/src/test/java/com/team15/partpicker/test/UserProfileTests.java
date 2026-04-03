@@ -61,7 +61,9 @@ class UserProfileTests {
             assertEquals("Integration", receivedJson.get("firstName").textValue());
             assertEquals("Tester", receivedJson.get("lastName").textValue());
             assertTrue(receivedJson.has("isAdmin"));
+            assertTrue(receivedJson.has("admin"));
             assertFalse(receivedJson.get("isAdmin").booleanValue());
+            assertFalse(receivedJson.get("admin").booleanValue());
             assertFalse(receivedJson.has("password"));
             assertTrue(userProfileRepository.findByEmailIgnoreCase(email).isPresent());
         } finally {
@@ -103,10 +105,63 @@ class UserProfileTests {
             assertEquals("Login", receivedJson.get("firstName").textValue());
             assertEquals("Tester", receivedJson.get("lastName").textValue());
             assertTrue(receivedJson.has("isAdmin"));
+            assertTrue(receivedJson.has("admin"));
             assertFalse(receivedJson.get("isAdmin").booleanValue());
+            assertFalse(receivedJson.get("admin").booleanValue());
             assertFalse(receivedJson.has("password"));
         } finally {
             userProfileRepository.deleteById(savedUserProfile.getId());
+        }
+    }
+
+    @Test
+    void loginDoesNotInheritAdminStatusFromAnotherAccount() throws Exception {
+        String adminEmail = "integration-admin@test.com";
+        String regularEmail = "integration-regular@test.com";
+        deleteExistingProfile(adminEmail);
+        deleteExistingProfile(regularEmail);
+
+        UserProfile adminProfile = new UserProfile();
+        adminProfile.setEmail(adminEmail);
+        adminProfile.setPassword("secret123");
+        adminProfile.setFirstName("Admin");
+        adminProfile.setLastName("Tester");
+        adminProfile.setAdmin(true);
+
+        UserProfile regularProfile = new UserProfile();
+        regularProfile.setEmail(regularEmail);
+        regularProfile.setPassword("secret123");
+        regularProfile.setFirstName("Regular");
+        regularProfile.setLastName("Tester");
+        regularProfile.setAdmin(false);
+
+        UserProfile savedAdminProfile = userProfileRepository.save(adminProfile);
+        UserProfile savedRegularProfile = userProfileRepository.save(regularProfile);
+
+        ObjectNode loginJson = objectMapper.createObjectNode();
+        loginJson.put("email", regularEmail);
+        loginJson.put("password", "secret123");
+
+        try {
+            MockHttpServletResponse response = mockMvc.perform(
+                            post("/profiles/login")
+                                    .contentType("application/json")
+                                    .content(loginJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, response.getStatus());
+
+            ObjectNode receivedJson = objectMapper.readValue(response.getContentAsString(), ObjectNode.class);
+            assertEquals(savedRegularProfile.getId(), receivedJson.get("id").longValue());
+            assertEquals(regularEmail, receivedJson.get("email").textValue());
+            assertTrue(receivedJson.has("isAdmin"));
+            assertTrue(receivedJson.has("admin"));
+            assertFalse(receivedJson.get("isAdmin").booleanValue());
+            assertFalse(receivedJson.get("admin").booleanValue());
+        } finally {
+            userProfileRepository.deleteById(savedAdminProfile.getId());
+            userProfileRepository.deleteById(savedRegularProfile.getId());
         }
     }
 
