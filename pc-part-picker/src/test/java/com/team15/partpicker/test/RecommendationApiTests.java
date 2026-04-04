@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @ExtendWith(SpringExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-class RecommendationAndBuildTests {
+class RecommendationApiTests { // tests the HTTP endpoints and response contracts for the RecommendationController
 
     @Autowired
     private MockMvc mockMvc;
@@ -302,6 +302,156 @@ class RecommendationAndBuildTests {
             }
             userProfileRepository.deleteById(firstProfile.getId());
             userProfileRepository.deleteById(secondProfile.getId());
+        }
+    }
+
+    @Test
+    void getRecommendationForNonexistentPreference_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/recommendations/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void deleteBuildNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(
+                        delete("/builds/999999")
+                                .contentType("application/json"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void createBuildForNonexistentPreference_returns404() throws Exception {
+        ObjectNode buildJson = objectMapper.createObjectNode();
+        buildJson.put("buildTitle", "Should Fail");
+
+        MockHttpServletResponse response = mockMvc.perform(
+                        post("/preferences/999999/builds")
+                                .contentType("application/json")
+                                .content(buildJson.toString()))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getBuildsForNonexistentProfile_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/profiles/999999/builds"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getPreferencesForNonexistentProfile_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/profiles/999999/preferences"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getPreferenceNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/preferences/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void createPreferenceForProfile_mismatchedBodyProfileId_returns400() throws Exception {
+        String email = "error-pref-mismatch@test.com";
+        deleteExistingProfile(email);
+
+        UserProfile profile = new UserProfile();
+        profile.setEmail(email);
+        profile.setPassword("secret123");
+        profile.setFirstName("Pref");
+        profile.setLastName("Mismatch");
+        UserProfile saved = userProfileRepository.save(profile);
+
+        try {
+            ObjectNode preferenceJson = objectMapper.createObjectNode();
+            preferenceJson.put("buildCategory", "GAMING");
+            preferenceJson.put("maxBudget", 1000);
+            preferenceJson.put("userProfileId", saved.getId() + 9999L);
+
+            MockHttpServletResponse response = mockMvc.perform(
+                            post("/profiles/" + saved.getId() + "/preferences")
+                                    .contentType("application/json")
+                                    .content(preferenceJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(400, response.getStatus());
+        } finally {
+            userProfileRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void createBuildForPreferenceNotOwnedByProfile_returns400() throws Exception {
+        String firstEmail = "error-build-ownership-first@test.com";
+        String secondEmail = "error-build-ownership-second@test.com";
+        deleteExistingProfile(firstEmail);
+        deleteExistingProfile(secondEmail);
+
+        UserProfile firstProfile = new UserProfile();
+        firstProfile.setEmail(firstEmail);
+        firstProfile.setPassword("secret123");
+        firstProfile.setFirstName("Owner");
+        firstProfile.setLastName("One");
+
+        UserProfile secondProfile = new UserProfile();
+        secondProfile.setEmail(secondEmail);
+        secondProfile.setPassword("secret123");
+        secondProfile.setFirstName("Owner");
+        secondProfile.setLastName("Two");
+
+        UserProfile savedFirst = userProfileRepository.save(firstProfile);
+        UserProfile savedSecond = userProfileRepository.save(secondProfile);
+
+        Long preferenceId = null;
+        try {
+            ObjectNode preferenceJson = objectMapper.createObjectNode();
+            preferenceJson.put("buildCategory", "GAMING");
+            preferenceJson.put("maxBudget", 1000);
+
+            MockHttpServletResponse prefResponse = mockMvc.perform(
+                            post("/profiles/" + savedFirst.getId() + "/preferences")
+                                    .contentType("application/json")
+                                    .content(preferenceJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, prefResponse.getStatus());
+            ObjectNode prefJson = objectMapper.readValue(prefResponse.getContentAsString(), ObjectNode.class);
+            preferenceId = prefJson.get("id").longValue();
+
+            ObjectNode buildJson = objectMapper.createObjectNode();
+            buildJson.put("buildTitle", "Should Fail");
+
+            MockHttpServletResponse buildResponse = mockMvc.perform(
+                            post("/profiles/" + savedSecond.getId() + "/preferences/" + preferenceId + "/builds")
+                                    .contentType("application/json")
+                                    .content(buildJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(400, buildResponse.getStatus());
+        } finally {
+            if (preferenceId != null) userPreferenceRepository.deleteById(preferenceId);
+            userProfileRepository.deleteById(savedFirst.getId());
+            userProfileRepository.deleteById(savedSecond.getId());
         }
     }
 
