@@ -399,6 +399,258 @@ class RecommendationApiTests { // tests the HTTP endpoints and response contract
     }
 
     @Test
+    void getBuildCategories_returnsAllCategories() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/build-categories"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() >= 3, "Should return at least three build categories");
+
+        boolean hasGaming = false;
+        boolean hasAiMl = false;
+        boolean hasWorkstation = false;
+        for (int i = 0; i < receivedJson.size(); i++) {
+            String category = receivedJson.get(i).textValue();
+            if ("GAMING".equals(category)) hasGaming = true;
+            if ("AI_ML".equals(category)) hasAiMl = true;
+            if ("WORKSTATION".equals(category)) hasWorkstation = true;
+        }
+        assertTrue(hasGaming, "GAMING category should be present");
+        assertTrue(hasAiMl, "AI_ML category should be present");
+        assertTrue(hasWorkstation, "WORKSTATION category should be present");
+    }
+
+    @Test
+    void getAllBuilds_returnsListIncludingCreatedBuild() throws Exception {
+        ObjectNode buildJson = objectMapper.createObjectNode();
+        buildJson.put("buildTitle", "List Me Build");
+
+        Long buildId = null;
+        try {
+            MockHttpServletResponse createResponse = mockMvc.perform(
+                            post("/preferences/1/builds")
+                                    .contentType("application/json")
+                                    .content(buildJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(201, createResponse.getStatus());
+            buildId = objectMapper.readValue(createResponse.getContentAsString(), ObjectNode.class)
+                    .get("id").longValue();
+
+            MockHttpServletResponse listResponse = mockMvc.perform(get("/builds"))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, listResponse.getStatus());
+
+            ArrayNode builds = (ArrayNode) objectMapper.readTree(listResponse.getContentAsString());
+            assertTrue(builds.size() > 0, "Build list should not be empty");
+
+            final Long finalBuildId = buildId;
+            boolean found = false;
+            for (int i = 0; i < builds.size(); i++) {
+                if (builds.get(i).get("id").longValue() == finalBuildId) {
+                    found = true;
+                    break;
+                }
+            }
+            assertTrue(found, "Created build should appear in the full build list");
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+        }
+    }
+
+    @Test
+    void getBuildById_returnsCorrectBuild() throws Exception {
+        ObjectNode buildJson = objectMapper.createObjectNode();
+        buildJson.put("buildTitle", "Get By ID Build");
+
+        Long buildId = null;
+        try {
+            MockHttpServletResponse createResponse = mockMvc.perform(
+                            post("/preferences/1/builds")
+                                    .contentType("application/json")
+                                    .content(buildJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(201, createResponse.getStatus());
+            ObjectNode createdJson = objectMapper.readValue(createResponse.getContentAsString(), ObjectNode.class);
+            buildId = createdJson.get("id").longValue();
+
+            MockHttpServletResponse getResponse = mockMvc.perform(get("/builds/" + buildId))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, getResponse.getStatus());
+
+            ObjectNode fetchedJson = objectMapper.readValue(getResponse.getContentAsString(), ObjectNode.class);
+            assertEquals(buildId.longValue(), fetchedJson.get("id").longValue());
+            assertEquals("Get By ID Build", fetchedJson.get("buildTitle").textValue());
+            assertEquals(1L, fetchedJson.get("preferenceId").longValue());
+            assertTrue(fetchedJson.hasNonNull("totalPrice"));
+            assertTrue(fetchedJson.hasNonNull("createdAt"));
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+        }
+    }
+
+    @Test
+    void getBuildNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/builds/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getBuildsForPreference_returnsOnlyMatchingBuilds() throws Exception {
+        ObjectNode build1Json = objectMapper.createObjectNode();
+        build1Json.put("buildTitle", "Preference Build One");
+        ObjectNode build2Json = objectMapper.createObjectNode();
+        build2Json.put("buildTitle", "Preference Build Two");
+
+        Long buildId1 = null;
+        Long buildId2 = null;
+        try {
+            MockHttpServletResponse r1 = mockMvc.perform(
+                            post("/preferences/1/builds")
+                                    .contentType("application/json")
+                                    .content(build1Json.toString()))
+                    .andReturn().getResponse();
+            MockHttpServletResponse r2 = mockMvc.perform(
+                            post("/preferences/1/builds")
+                                    .contentType("application/json")
+                                    .content(build2Json.toString()))
+                    .andReturn().getResponse();
+
+            assertEquals(201, r1.getStatus());
+            assertEquals(201, r2.getStatus());
+            buildId1 = objectMapper.readValue(r1.getContentAsString(), ObjectNode.class).get("id").longValue();
+            buildId2 = objectMapper.readValue(r2.getContentAsString(), ObjectNode.class).get("id").longValue();
+
+            MockHttpServletResponse listResponse = mockMvc.perform(get("/preferences/1/builds"))
+                    .andReturn().getResponse();
+
+            assertEquals(200, listResponse.getStatus());
+            ArrayNode builds = (ArrayNode) objectMapper.readTree(listResponse.getContentAsString());
+
+            for (int i = 0; i < builds.size(); i++) {
+                assertEquals(1L, builds.get(i).get("preferenceId").longValue(),
+                        "All returned builds should belong to preference 1");
+            }
+        } finally {
+            if (buildId1 != null) buildRepository.deleteById(buildId1);
+            if (buildId2 != null) buildRepository.deleteById(buildId2);
+        }
+    }
+
+    @Test
+    void createPreferenceWithoutProfile_persists() throws Exception {
+        ObjectNode preferenceJson = objectMapper.createObjectNode();
+        preferenceJson.put("buildCategory", "GAMING");
+        preferenceJson.put("maxBudget", 1000);
+
+        Long preferenceId = null;
+        try {
+            MockHttpServletResponse response = mockMvc.perform(
+                            post("/preferences")
+                                    .contentType("application/json")
+                                    .content(preferenceJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, response.getStatus());
+
+            ObjectNode receivedJson = objectMapper.readValue(response.getContentAsString(), ObjectNode.class);
+            preferenceId = receivedJson.get("id").longValue();
+
+            assertTrue(userPreferenceRepository.findById(preferenceId).isPresent(),
+                    "Preference created without a user profile should still be persisted");
+            assertTrue(receivedJson.get("userProfileId").isNull(),
+                    "Preference created without a user profile should have null userProfileId");
+        } finally {
+            if (preferenceId != null) userPreferenceRepository.deleteById(preferenceId);
+        }
+    }
+
+    @Test
+    void createPreferenceWithAllBrandPreferences_persisted() throws Exception {
+        String email = "all-brand-prefs@test.com";
+        deleteExistingProfile(email);
+
+        UserProfile profile = saveUserProfile(email, "Brand", "All");
+        Long preferenceId = null;
+
+        try {
+            ObjectNode preferenceJson = objectMapper.createObjectNode();
+            preferenceJson.put("buildCategory", "WORKSTATION");
+            preferenceJson.put("maxBudget", 3000);
+            preferenceJson.put("preferredCpuBrand", "Intel");
+            preferenceJson.put("preferredGpuBrand", "NVIDIA");
+            preferenceJson.put("preferredMotherboardBrand", "ASUS");
+            preferenceJson.put("preferredRamBrand", "Kingston");
+            preferenceJson.put("preferredStorageBrand", "Samsung");
+            preferenceJson.put("preferredPsuBrand", "Seasonic");
+            preferenceJson.put("preferredCoolerBrand", "Noctua");
+            preferenceJson.put("preferredCaseBrand", "Fractal");
+
+            MockHttpServletResponse response = mockMvc.perform(
+                            post("/profiles/" + profile.getId() + "/preferences")
+                                    .contentType("application/json")
+                                    .content(preferenceJson.toString()))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, response.getStatus());
+
+            ObjectNode receivedJson = objectMapper.readValue(response.getContentAsString(), ObjectNode.class);
+            preferenceId = receivedJson.get("id").longValue();
+
+            assertEquals("Intel", receivedJson.get("preferredCpuBrand").textValue());
+            assertEquals("NVIDIA", receivedJson.get("preferredGpuBrand").textValue());
+            assertEquals("ASUS", receivedJson.get("preferredMotherboardBrand").textValue());
+            assertEquals("Kingston", receivedJson.get("preferredRamBrand").textValue());
+            assertEquals("Samsung", receivedJson.get("preferredStorageBrand").textValue());
+            assertEquals("Seasonic", receivedJson.get("preferredPsuBrand").textValue());
+            assertEquals("Noctua", receivedJson.get("preferredCoolerBrand").textValue());
+            assertEquals("Fractal", receivedJson.get("preferredCaseBrand").textValue());
+
+            var stored = userPreferenceRepository.findById(preferenceId).orElseThrow();
+            assertEquals("Intel", stored.getPreferredCpuBrand());
+            assertEquals("Samsung", stored.getPreferredStorageBrand());
+        } finally {
+            if (preferenceId != null) userPreferenceRepository.deleteById(preferenceId);
+            userProfileRepository.deleteById(profile.getId());
+        }
+    }
+
+    @Test
+    void recommendationResponseIncludesCreatedAtTimestamp() throws Exception {
+        Long buildId = null;
+        try {
+            MockHttpServletResponse response = mockMvc.perform(get("/recommendations/1"))
+                    .andReturn()
+                    .getResponse();
+
+            assertEquals(200, response.getStatus());
+
+            ObjectNode receivedJson = objectMapper.readValue(response.getContentAsString(), ObjectNode.class);
+            assertTrue(receivedJson.hasNonNull("createdAt"),
+                    "Recommendation response should include a createdAt timestamp");
+
+            buildId = receivedJson.get("buildId").longValue();
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+        }
+    }
+
+    @Test
     void createBuildForPreferenceNotOwnedByProfile_returns400() throws Exception {
         String firstEmail = "error-build-ownership-first@test.com";
         String secondEmail = "error-build-ownership-second@test.com";

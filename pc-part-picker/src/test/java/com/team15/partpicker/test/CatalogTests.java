@@ -320,6 +320,234 @@ class CatalogTests {
         );
     }
 
+    @Test
+    void getCpuNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/cpus/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getGpuNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/gpus/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getMotherboardNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/motherboards/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getRamNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/rams/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getStorageNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/storages/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getPsuNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/psus/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getCoolerNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/coolers/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getCaseNotFound_returns404() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/cases/999999"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    void getGpusWithFilters() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(
+                        get("/gpus")
+                                .param("brand", "NVIDIA")
+                                .param("minVramGb", "8")
+                                .param("maxPrice", "800"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() > 0);
+
+        for (int i = 0; i < receivedJson.size(); i++) {
+            ObjectNode gpuJson = (ObjectNode) receivedJson.get(i);
+            assertEquals("NVIDIA", gpuJson.get("brand").textValue());
+            assertTrue(gpuJson.get("vramGb").intValue() >= 8);
+            assertTrue(gpuJson.get("price").decimalValue().compareTo(new BigDecimal("800")) <= 0);
+        }
+    }
+
+    @Test
+    void getMotherboardsWithFilters() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(
+                        get("/motherboards")
+                                .param("brand", "ASUS")
+                                .param("socket", "AM5")
+                                .param("maxPrice", "300"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() > 0);
+
+        for (int i = 0; i < receivedJson.size(); i++) {
+            ObjectNode moboJson = (ObjectNode) receivedJson.get(i);
+            assertEquals("ASUS", moboJson.get("brand").textValue());
+            assertEquals("AM5", moboJson.get("socket").textValue());
+            assertTrue(moboJson.get("price").decimalValue().compareTo(new BigDecimal("300")) <= 0);
+        }
+    }
+
+    @Test
+    void getRamsWithFilters() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(
+                        get("/rams")
+                                .param("brand", "Corsair")
+                                .param("ddrType", "DDR5")
+                                .param("maxPrice", "200"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() > 0);
+
+        for (int i = 0; i < receivedJson.size(); i++) {
+            ObjectNode ramJson = (ObjectNode) receivedJson.get(i);
+            assertEquals("Corsair", ramJson.get("brand").textValue());
+            assertEquals("DDR5", ramJson.get("ddrType").textValue());
+            assertTrue(ramJson.get("price").decimalValue().compareTo(new BigDecimal("200")) <= 0);
+        }
+    }
+
+    @Test
+    void getPsusWithFilters() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(
+                        get("/psus")
+                                .param("brand", "Corsair")
+                                .param("minWattage", "750")
+                                .param("maxPrice", "200"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() > 0);
+
+        for (int i = 0; i < receivedJson.size(); i++) {
+            ObjectNode psuJson = (ObjectNode) receivedJson.get(i);
+            assertEquals("Corsair", psuJson.get("brand").textValue());
+            assertTrue(psuJson.get("wattage").intValue() >= 750);
+            assertTrue(psuJson.get("price").decimalValue().compareTo(new BigDecimal("200")) <= 0);
+        }
+    }
+
+    @Test
+    void getCoolersWithFilters() throws Exception {
+        // All coolers in the seeded catalog have socket=NULL (universal mounting),
+        // so socket-based filtering returns no results. Use brand + type + maxPrice instead.
+        MockHttpServletResponse response = mockMvc.perform(
+                        get("/coolers")
+                                .param("brand", "Thermalright")
+                                .param("type", "Air")
+                                .param("maxPrice", "40"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() > 0);
+
+        for (int i = 0; i < receivedJson.size(); i++) {
+            ObjectNode coolerJson = (ObjectNode) receivedJson.get(i);
+            assertEquals("Thermalright", coolerJson.get("brand").textValue());
+            assertEquals("Air", coolerJson.get("type").textValue());
+            assertTrue(coolerJson.get("price").decimalValue().compareTo(new BigDecimal("40")) <= 0);
+        }
+    }
+
+    @Test
+    void getCpusWithNoFilters_returnsNonEmptyList() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get("/cpus"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertTrue(receivedJson.size() > 0, "CPU catalog should not be empty");
+    }
+
+    @Test
+    void getCpusWithNoResults_returnsEmptyList() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(
+                        get("/cpus").param("brand", "NonExistentBrand_XYZ_123"))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(200, response.getStatus());
+
+        ArrayNode receivedJson = objectMapper.readValue(response.getContentAsString(), ArrayNode.class);
+        assertEquals(0, receivedJson.size(), "Unknown brand should return empty list");
+    }
+
+    @Test
+    void updateNonexistentCpu_returns404() throws Exception {
+        ObjectNode updateJson = json("model", "Ghost CPU", "brand", "Ghost Brand", "price", new BigDecimal("199.99"));
+
+        MockHttpServletResponse response = mockMvc.perform(
+                        put("/cpus/999999")
+                                .contentType("application/json")
+                                .content(updateJson.toString()))
+                .andReturn()
+                .getResponse();
+
+        assertEquals(404, response.getStatus());
+    }
+
     private void exerciseCatalog(
             String endpoint,
             ObjectNode createJson,
