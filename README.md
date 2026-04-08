@@ -4,7 +4,7 @@ Spring Boot REST API for selecting PC components and generating budget-based rec
 
 ## Tech Stack
 
-- Java 11
+- Java 17
 - Spring Boot 2.7
 - Spring Web
 - Spring Data JPA
