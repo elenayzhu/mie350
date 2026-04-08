@@ -546,6 +546,275 @@ class RecommendationAlgorithmTests { // tests the RecommendationService algorith
     }
 
     @Test
+    void recommendForPreference_nonExistentPreference_throws() {
+        assertThrows(com.team15.partpicker.exception.UserPreferenceNotFoundException.class,
+                () -> recommendationService.recommendForPreference(999999L));
+    }
+
+    @Test
+    void recommendForPreference_allEightPartsPresent_highBudget() {
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.GAMING);
+        preference.setMaxBudget(new BigDecimal("5000"));
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response);
+            buildId = response.getBuildId();
+            assertNotNull(response.getCpu(), "CPU should be present with high budget");
+            assertNotNull(response.getGpu(), "GPU should be present with high budget");
+            assertNotNull(response.getMotherboard(), "Motherboard should be present with high budget");
+            assertNotNull(response.getRam(), "RAM should be present with high budget");
+            assertNotNull(response.getStorage(), "Storage should be present with high budget");
+            assertNotNull(response.getPsu(), "PSU should be present with high budget");
+            assertNotNull(response.getCooler(), "Cooler should be present with high budget");
+            assertNotNull(response.getComputerCase(), "Case should be present with high budget");
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_psuWattageIsSufficientForBuild() {
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.GAMING);
+        preference.setMaxBudget(new BigDecimal("2000"));
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response);
+            buildId = response.getBuildId();
+
+            if (response.getPsu() != null && response.getCpu() != null) {
+                Cpu cpu = response.getCpu();
+                Gpu gpu = response.getGpu();
+
+                int cores = cpu.getCores() != null ? cpu.getCores() : 0;
+                int cpuWatts = cores <= 6 ? 95 : (cores <= 8 ? 125 : 170);
+                int gpuWatts = (gpu == null || gpu.getVramGb() == null) ? 0
+                        : (gpu.getVramGb() <= 8 ? 150 : (gpu.getVramGb() <= 12 ? 220 : 300));
+                int required = (int) Math.ceil((cpuWatts + gpuWatts + 100) * 1.3);
+
+                assertTrue(response.getPsu().getWattage() >= required,
+                        "PSU wattage should meet the computed minimum for the selected CPU and GPU");
+            }
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_coolerSocketCompatibleWithCpu() {
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.GAMING);
+        preference.setMaxBudget(new BigDecimal("2000"));
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response);
+            buildId = response.getBuildId();
+
+            if (response.getCpu() != null && response.getCooler() != null) {
+                String cpuSocket = response.getCpu().getSocket();
+                String coolerSocket = response.getCooler().getSocket();
+                if (cpuSocket != null && coolerSocket != null && !coolerSocket.isBlank()) {
+                    assertEquals(cpuSocket.toLowerCase(), coolerSocket.toLowerCase(),
+                            "Cooler socket should be compatible with CPU socket");
+                }
+            }
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_multipleBrandPreferences_allRespected() {
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.GAMING);
+        preference.setMaxBudget(new BigDecimal("2000"));
+        preference.setPreferredCpuBrand("AMD");
+        preference.setPreferredGpuBrand("NVIDIA");
+        preference.setPreferredRamBrand("Corsair");
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response);
+            buildId = response.getBuildId();
+
+            if (response.getCpu() != null) {
+                assertEquals("AMD", response.getCpu().getBrand(), "CPU brand should match preference");
+            }
+            if (response.getGpu() != null) {
+                assertEquals("NVIDIA", response.getGpu().getBrand(), "GPU brand should match preference");
+            }
+            if (response.getRam() != null) {
+                assertEquals("Corsair", response.getRam().getBrand(), "RAM brand should match preference");
+            }
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_gamingCategory_gpuGetsLargerShareThanCpu() {
+        // GAMING: GPU=32%, CPU=24%
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.GAMING);
+        preference.setMaxBudget(new BigDecimal("2000"));
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response);
+            buildId = response.getBuildId();
+
+            if (response.getCpu() != null && response.getGpu() != null) {
+                assertTrue(
+                        response.getGpu().getPrice().compareTo(response.getCpu().getPrice()) >= 0,
+                        "In GAMING build, GPU should receive a larger budget share than CPU (32% vs 24%)");
+            }
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_sameCategoryAndBudget_isDeterministic() {
+        UserPreference pref1 = new UserPreference();
+        pref1.setBuildCategory(BuildCategory.GAMING);
+        pref1.setMaxBudget(new BigDecimal("1500"));
+        UserPreference saved1 = userPreferenceRepository.save(pref1);
+
+        UserPreference pref2 = new UserPreference();
+        pref2.setBuildCategory(BuildCategory.GAMING);
+        pref2.setMaxBudget(new BigDecimal("1500"));
+        UserPreference saved2 = userPreferenceRepository.save(pref2);
+
+        Long buildId1 = null;
+        Long buildId2 = null;
+        try {
+            RecommendationResponse response1 = recommendationService.recommendForPreference(saved1.getId());
+            RecommendationResponse response2 = recommendationService.recommendForPreference(saved2.getId());
+
+            assertNotNull(response1);
+            assertNotNull(response2);
+            buildId1 = response1.getBuildId();
+            buildId2 = response2.getBuildId();
+
+            assertEquals(0, response1.getTotalPrice().compareTo(response2.getTotalPrice()),
+                    "Same category and budget should produce identical total prices");
+
+            if (response1.getCpu() != null && response2.getCpu() != null) {
+                assertEquals(response1.getCpu().getId(), response2.getCpu().getId(),
+                        "Same category and budget should select the same CPU");
+            }
+            if (response1.getGpu() != null && response2.getGpu() != null) {
+                assertEquals(response1.getGpu().getId(), response2.getGpu().getId(),
+                        "Same category and budget should select the same GPU");
+            }
+        } finally {
+            if (buildId1 != null) buildRepository.deleteById(buildId1);
+            if (buildId2 != null) buildRepository.deleteById(buildId2);
+            userPreferenceRepository.deleteById(saved1.getId());
+            userPreferenceRepository.deleteById(saved2.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_aiMlCategory_gpuGetsLargestBudgetShare() {
+        // AI_ML: GPU=34%, CPU=27% -- GPU allocation is the largest
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.AI_ML);
+        preference.setMaxBudget(new BigDecimal("3000"));
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response);
+            buildId = response.getBuildId();
+
+            if (response.getGpu() != null && response.getCpu() != null) {
+                assertTrue(
+                        response.getGpu().getPrice().compareTo(response.getCpu().getPrice()) >= 0,
+                        "In AI_ML build, GPU (34%) should be at least as expensive as CPU (27%)");
+            }
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_negativeBudget_treatedAsZeroOrEmpty() {
+        // @DecimalMin("0.0") on the entity prevents negative values from being persisted,
+        // but if a zero budget is passed the service should handle it gracefully
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.GAMING);
+        preference.setMaxBudget(BigDecimal.ZERO);
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response, "Service should return a response even for zero budget");
+            buildId = response.getBuildId();
+            assertEquals(0, response.getTotalPrice().compareTo(BigDecimal.ZERO),
+                    "Zero budget should produce zero total price");
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
+    void recommendForPreference_workstationCategory_gpuGetsLessThanCpu() {
+        // WORKSTATION: CPU=30%, GPU=25% -- CPU gets more than GPU (opposite of GAMING)
+        UserPreference preference = new UserPreference();
+        preference.setBuildCategory(BuildCategory.WORKSTATION);
+        preference.setMaxBudget(new BigDecimal("3000"));
+        UserPreference saved = userPreferenceRepository.save(preference);
+
+        Long buildId = null;
+        try {
+            RecommendationResponse response = recommendationService.recommendForPreference(saved.getId());
+
+            assertNotNull(response);
+            buildId = response.getBuildId();
+
+            if (response.getCpu() != null && response.getGpu() != null) {
+                assertTrue(
+                        response.getCpu().getPrice().compareTo(response.getGpu().getPrice()) >= 0,
+                        "In WORKSTATION build, CPU (30%) should receive at least as much budget as GPU (25%)");
+            }
+        } finally {
+            if (buildId != null) buildRepository.deleteById(buildId);
+            userPreferenceRepository.deleteById(saved.getId());
+        }
+    }
+
+    @Test
     void recommendForPreference_totalPriceEqualsPartPricesSum() {
         UserPreference preference = new UserPreference();
         preference.setBuildCategory(BuildCategory.GAMING);
